@@ -1,29 +1,29 @@
 {
-  "generated_at": "2026-09-24T17:49:38.134617Z",
+  "generated_at": "2026-09-24T17:54:47.721636Z",
   "total_problems": 9,
   "status_counts": {
     "pending": 0,
     "fetching": 0,
     "fetched": 0,
-    "generating": 2,
+    "generating": 1,
     "validating": 0,
-    "published": 4,
-    "failed": 3
+    "published": 3,
+    "failed": 5
   },
   "difficulty_counts": {
-    "Easy": 3,
+    "Easy": 1,
     "Medium": 0,
-    "Hard": 1
+    "Hard": 2
   },
   "agent_counts": {
-    "claude": 4
+    "claude": 3
   },
   "last_batch": {
     "batch_number": 1,
     "difficulty": "Hard",
-    "status": "running",
-    "generated_count": 0,
-    "failed_count": 0
+    "status": "completed",
+    "generated_count": 1,
+    "failed_count": 1
   },
-  "avg_generation_duration_seconds": 98.23
+  "avg_generation_duration_seconds": 102.84
 }

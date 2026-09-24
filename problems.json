@@ -12,6 +12,19 @@
     "url": "https://leetcode.com/problems/two-sum/"
   },
   {
+    "id": 4,
+    "title": "Median of Two Sorted Arrays",
+    "slug": "median-of-two-sorted-arrays",
+    "difficulty": "Hard",
+    "topics": [
+      "Array",
+      "Binary Search",
+      "Divide and Conquer"
+    ],
+    "file": "problems/4-median-of-two-sorted-arrays.html",
+    "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/"
+  },
+  {
     "id": 9,
     "title": "Palindrome Number",
     "slug": "palindrome-number",
@@ -21,6 +34,19 @@
     ],
     "file": "problems/9-palindrome-number.html",
     "url": "https://leetcode.com/problems/palindrome-number/"
+  },
+  {
+    "id": 10,
+    "title": "Regular Expression Matching",
+    "slug": "regular-expression-matching",
+    "difficulty": "Hard",
+    "topics": [
+      "String",
+      "Dynamic Programming",
+      "Recursion"
+    ],
+    "file": "problems/10-regular-expression-matching.html",
+    "url": "https://leetcode.com/problems/regular-expression-matching/"
   },
   {
     "id": 20,
