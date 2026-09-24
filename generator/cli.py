@@ -4,7 +4,7 @@ import argparse
 import sqlite3
 from pathlib import Path
 
-from .database import init_db, get_connection
+from .database import init_db, get_connection, list_problems
 from .config import load_config, create_default_config
 from .manifest import rebuild_problems_json, rebuild_generation_manifest
 from .agents import get_agent
@@ -183,11 +183,32 @@ def main(argv=None):
             print("  5. Generate problems in parallel (max 5 workers)")
 
         elif choice == "3":
-            print("\nValidate generated problems")
-            print("(Feature not yet implemented)")
-            print("Expected workflow:")
-            print("  - Run static HTML checks on all published problems")
-            print("  - Optional Playwright dynamic checks if installed")
+            print("\nValidating all published problems...")
+            from .html_validator import validate
+
+            published = list_problems(conn, status="published")
+            if not published:
+                print("No published problems to validate.")
+                continue
+
+            passed = 0
+            failed = 0
+
+            for problem in published:
+                if problem.html_file:
+                    file_path = Path(problem.html_file)
+                    result = validate(file_path, run_dynamic=False)
+
+                    if result.passed:
+                        passed += 1
+                        print(f"  ✓ #{problem.leetcode_id} - {problem.title}")
+                    else:
+                        failed += 1
+                        print(f"  ✗ #{problem.leetcode_id} - {problem.title}")
+                        for error in result.errors[:2]:
+                            print(f"      {error}")
+
+            print(f"\nValidation complete: {passed} passed, {failed} failed")
 
         elif choice == "4":
             print("\nRebuilding manifests...")
