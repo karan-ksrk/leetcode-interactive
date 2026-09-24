@@ -1,0 +1,28 @@
+# LeetCode Interactive Generator Configuration
+
+generation:
+  default_agent: claude          # claude | codex | gemini | generic
+  default_batch_size: 5
+  default_parallelism: 5
+
+agents:
+  claude:
+    enabled: true
+    timeout_seconds: 600
+
+  codex:
+    enabled: true
+    timeout_seconds: 600
+
+  gemini:
+    enabled: true
+    timeout_seconds: 600
+
+  generic:
+    enabled: false
+    command_template: ""         # Example: "my-ai-tool --input {problem_file} --output {output_file}"
+    timeout_seconds: 600
+
+db_path: database/leetcode.db
+
+# For rate-limit headroom, set LEETCODE_SESSION and LEETCODE_CSRF_TOKEN in .env
