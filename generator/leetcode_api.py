@@ -1,9 +1,7 @@
-"""LeetCode API client for fetching problem metadata."""
+"""LeetCode API client using alfa-leetcode-api library."""
 
-import requests
-import json
 from typing import Optional, Dict, List
-import time
+from alfa_leetcode_api.leetcode import LeetCode
 
 
 class LeetCodeAPIError(Exception):
@@ -11,90 +9,37 @@ class LeetCodeAPIError(Exception):
 
 
 class LeetCodeClient:
-    """GraphQL-based LeetCode client, metadata-only (no full HTML descriptions)."""
+    """LeetCode client using alfa-leetcode-api library (community-maintained)."""
 
-    def __init__(self, base_url: str = "https://leetcode.com/graphql", timeout: float = 15.0):
-        self.base_url = base_url
-        self.timeout = timeout
-        self.session = requests.Session()
-        self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Content-Type": "application/json",
-            "Referer": "https://leetcode.com/",
-            "Accept": "application/json",
-        })
-
-    def _post_graphql(self, query: str, variables: dict) -> dict:
-        """Execute a GraphQL query with retry/backoff."""
-        payload = {
-            "query": query,
-            "variables": variables,
-        }
-
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                response = self.session.post(
-                    self.base_url,
-                    json=payload,
-                    timeout=self.timeout,
-                )
-                response.raise_for_status()
-                data = response.json()
-
-                if "errors" in data:
-                    error_msg = "; ".join([e.get("message", str(e)) for e in data["errors"]])
-                    raise LeetCodeAPIError(f"GraphQL error: {error_msg}")
-
-                return data.get("data", {})
-
-            except requests.RequestException as e:
-                if attempt < max_retries - 1:
-                    wait = 2 ** attempt
-                    time.sleep(wait)
-                else:
-                    raise LeetCodeAPIError(f"API request failed after {max_retries} attempts: {e}")
+    def __init__(self):
+        try:
+            self.lc = LeetCode()
+        except Exception as e:
+            raise LeetCodeAPIError(f"Failed to initialize LeetCode client: {e}")
 
     def get_problem_by_slug(self, slug: str) -> dict:
-        """Fetch a problem by slug. Returns metadata only."""
-        query = """
-        query getProblem($slug: String!) {
-            question(titleSlug: $slug) {
-                questionId
-                questionFrontendId
-                title
-                titleSlug
-                difficulty
-                content
-                exampleTestcases
-                topicTags {
-                    name
-                }
-                stats
-                codeSnippets {
-                    lang
-                    langSlug
-                    code
-                }
-                constraints {
-                    constraints
-                }
+        """Fetch a problem by slug."""
+        try:
+            question = self.lc.get_question(slug)
+            if not question:
+                raise LeetCodeAPIError(f"Problem not found: {slug}")
+
+            return {
+                "questionId": question.get("questionId"),
+                "questionFrontendId": question.get("questionFrontendId"),
+                "title": question.get("title"),
+                "titleSlug": question.get("titleSlug"),
+                "difficulty": question.get("difficulty"),
+                "topicTags": [{"name": tag} for tag in question.get("topicTags", [])],
+                "exampleTestcases": question.get("exampleTestcases", ""),
+                "constraints": question.get("constraints", []),
+                "content": question.get("content", ""),
             }
-        }
-        """
-
-        data = self._post_graphql(query, {"slug": slug})
-        question = data.get("question")
-
-        if not question:
-            raise LeetCodeAPIError(f"Problem not found: {slug}")
-
-        return question
+        except Exception as e:
+            raise LeetCodeAPIError(f"Failed to fetch problem {slug}: {e}")
 
     def get_problem_by_url(self, url: str) -> dict:
-        """Parse slug from a LeetCode URL and fetch the problem."""
-        # Extract slug from URL like https://leetcode.com/problems/two-sum/
-        # or https://leetcode.com/problems/two-sum/?something=value
+        """Parse slug from URL and fetch the problem."""
         import re
         match = re.search(r'/problems/([a-z0-9\-]+)', url)
         if not match:
@@ -105,45 +50,39 @@ class LeetCodeClient:
 
     def get_problems_by_difficulty(self, difficulty: str, limit: int = 50, skip: int = 0) -> List[dict]:
         """Fetch problems by difficulty level."""
-        # Normalize difficulty
-        difficulty_map = {"easy": "Easy", "medium": "Medium", "hard": "Hard"}
-        difficulty_display = difficulty_map.get(difficulty.lower())
-        if not difficulty_display:
-            raise ValueError(f"Invalid difficulty: {difficulty}")
-
-        query = """
-        query getProblems($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
-            problemsetQuestionList(
-                categorySlug: $categorySlug
-                limit: $limit
-                skip: $skip
-                filters: $filters
-            ) {
-                total
-                questions {
-                    questionId
-                    questionFrontendId
-                    title
-                    titleSlug
-                    difficulty
-                    topicTags {
-                        name
-                    }
-                }
-            }
-        }
-        """
-
         try:
-            data = self._post_graphql(query, {
-                "categorySlug": "all-code-problems",
-                "limit": limit,
-                "skip": skip,
-                "filters": {"difficulty": difficulty_display},
-            })
+            difficulty_map = {
+                "easy": "Easy",
+                "medium": "Medium",
+                "hard": "Hard"
+            }
+            difficulty_display = difficulty_map.get(difficulty.lower())
+            if not difficulty_display:
+                raise ValueError(f"Invalid difficulty: {difficulty}")
 
-            problem_list = data.get("problemsetQuestionList", {})
-            return problem_list.get("questions", [])
+            # Fetch problems with difficulty filter
+            # alfa-leetcode-api returns a list of problems
+            problems = self.lc.get_problems(
+                filters={"difficulty": difficulty_display}
+            )
+
+            if not problems:
+                return []
+
+            # Return as list of dicts matching our expected format
+            result = []
+            for p in problems[skip:skip + limit]:
+                result.append({
+                    "questionId": p.get("questionId"),
+                    "questionFrontendId": p.get("questionFrontendId"),
+                    "title": p.get("title"),
+                    "titleSlug": p.get("titleSlug"),
+                    "difficulty": p.get("difficulty"),
+                    "topicTags": [{"name": tag} for tag in p.get("topicTags", [])],
+                })
+
+            return result
+
         except Exception as e:
-            print(f"API Error: {e}. Try single problem mode instead (option 1)")
+            print(f"Warning: Problem fetch failed ({e}), returning empty list")
             return []
