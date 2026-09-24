@@ -22,5 +22,5 @@
     }
   ],
   "starter_python": "class Solution:\n    def twoSum(self, nums: list[int], target: int) -> list[int]:\n        ",
-  "fetched_at": "2026-09-24T23:02:30Z"
+  "fetched_at": "2026-09-24T23:21:38Z"
 }

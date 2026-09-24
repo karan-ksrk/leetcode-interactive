@@ -23,5 +23,5 @@
     }
   ],
   "starter_python": "class Solution:\n    def isMatch(self, s: str, p: str) -> bool:\n        ",
-  "fetched_at": "2026-09-24T23:19:38Z"
+  "fetched_at": "2026-09-24T23:21:55Z"
 }

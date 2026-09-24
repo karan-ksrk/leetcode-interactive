@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>10. Regular Expression Matching — Interactive Visualization</title>
+<style>
+  :root {
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --text: #1d2233;
+    --muted: #616a82;
+    --border: #dde1ec;
+    --accent: #4f5bd5;
+    --accent-soft: #e6e8fb;
+    --true: #1f9d61;
+    --true-bg: #dcf5e8;
+    --false: #c43d4b;
+    --false-bg: #fbe3e6;
+    --cur: #f2a100;
+    --cur-bg: #fff1cc;
+    --dep: #4f5bd5;
+    --code-bg: #f0f2f8;
+    --code-hl: #fff1cc;
+    --hard: #c43d4b;
+    --shadow: 0 2px 10px rgba(20, 30, 60, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11131a;
+      --panel: #1a1d27;
+      --text: #e5e8f2;
+      --muted: #9aa1b8;
+      --border: #2d3244;
+      --accent: #8b95ff;
+      --accent-soft: #262b48;
+      --true: #4fd694;
+      --true-bg: #173427;
+      --false: #ff7b88;
+      --false-bg: #3a1c22;
+      --cur: #ffc044;
+      --cur-bg: #3d3115;
+      --dep: #8b95ff;
+      --code-bg: #141720;
+      --code-hl: #3d3115;
+      --hard: #ff7b88;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 16px 40px; }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+  .badge {
+    font-size: 0.78rem; padding: 2px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); font-weight: 600;
+  }
+  .badge.hard { background: var(--false-bg); color: var(--hard); }
+  .meta a { color: var(--accent); font-size: 0.85rem; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; box-shadow: var(--shadow);
+    margin-bottom: 16px;
+  }
+  .panel h2 { font-size: 1rem; margin: 0 0 10px; }
+  details.desc summary { cursor: pointer; font-weight: 600; }
+  .desc code, .desc pre {
+    background: var(--code-bg); border-radius: 5px; padding: 1px 5px;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.9em;
+  }
+  .desc pre { padding: 10px; overflow-x: auto; }
+  .inputs { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .inputs label { display: flex; flex-direction: column; font-size: 0.8rem; color: var(--muted); gap: 3px; }
+  .inputs input {
+    font-family: ui-monospace, Consolas, monospace; font-size: 1rem;
+    padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); width: 180px;
+  }
+  button {
+    font: inherit; font-size: 0.9rem; cursor: pointer;
+    padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text);
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button:focus-visible, input:focus-visible, summary:focus-visible, select:focus-visible {
+    outline: 3px solid var(--cur); outline-offset: 2px;
+  }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .presets { display: flex; gap: 6px; flex-wrap: wrap; }
+  .presets button { font-size: 0.8rem; padding: 5px 10px; font-family: ui-monospace, Consolas, monospace; }
+  .err { color: var(--false); font-size: 0.85rem; min-height: 1.2em; margin-top: 6px; }
+  .grid-main { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; }
+  @media (max-width: 880px) { .grid-main { grid-template-columns: 1fr; } }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .controls .speed { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; color: var(--muted); margin-left: auto; }
+  .progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
+  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width 0.2s; }
+  .strings { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .strrow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .strrow .lbl { width: 22px; font-weight: 700; color: var(--muted); font-family: ui-monospace, Consolas, monospace; }
+  .ch {
+    width: 30px; height: 34px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 1px solid var(--border); border-radius: 6px; font-family: ui-monospace, Consolas, monospace;
+    font-weight: 700; position: relative; transition: all 0.2s; background: var(--bg);
+  }
+  .ch small { font-size: 0.6rem; color: var(--muted); font-weight: 400; position: absolute; bottom: -15px; }
+  .ch.on { border-color: var(--cur); background: var(--cur-bg); transform: translateY(-3px); }
+  .ch.star { border-color: var(--accent); background: var(--accent-soft); }
+  .ch.done { opacity: 0.4; }
+  .tablewrap { overflow-x: auto; padding-bottom: 4px; }
+  table.dp { border-collapse: separate; border-spacing: 3px; margin: 8px auto 0; font-family: ui-monospace, Consolas, monospace; }
+  table.dp th { font-size: 0.8rem; color: var(--muted); padding: 2px 4px; font-weight: 600; }
+  table.dp th .idx { display: block; font-size: 0.62rem; opacity: 0.75; }
+  table.dp td {
+    width: 34px; height: 34px; text-align: center; border-radius: 6px;
+    border: 1px solid var(--border); font-weight: 700; font-size: 0.8rem;
+    transition: background 0.2s, border-color 0.2s, transform 0.2s;
+  }
+  table.dp td.T { background: var(--true-bg); color: var(--true); }
+  table.dp td.F { background: var(--false-bg); color: var(--false); }
+  table.dp td.dep { outline: 2px dashed var(--dep); outline-offset: -3px; }
+  table.dp td.cur { border: 2px solid var(--cur); transform: scale(1.12); box-shadow: 0 0 0 3px var(--cur-bg); }
+  table.dp td.ans { box-shadow: 0 0 0 3px var(--accent); }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.78rem; color: var(--muted); margin-top: 10px; justify-content: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; border: 1px solid var(--border); }
+  .narr {
+    background: var(--accent-soft); border-left: 4px solid var(--accent); padding: 10px 12px;
+    border-radius: 6px; min-height: 3.2em; font-size: 0.93rem;
+  }
+  .narr code { font-family: ui-monospace, Consolas, monospace; font-weight: 700; }
+  pre.code {
+    margin: 0; background: var(--code-bg); border-radius: 8px; padding: 10px 0;
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: 0.82rem;
+    overflow-x: auto; counter-reset: ln;
+  }
+  pre.code .ln { display: block; padding: 1px 12px 1px 0; white-space: pre; border-left: 4px solid transparent; transition: background 0.15s; }
+  pre.code .ln::before {
+    counter-increment: ln; content: counter(ln); display: inline-block; width: 2.4em;
+    text-align: right; margin-right: 12px; color: var(--muted); opacity: 0.6;
+  }
+  pre.code .ln.hl { background: var(--code-hl); border-left-color: var(--cur); }
+  .kw { color: #a347c4; } .fn { color: #2b7bd6; } .st { color: #1f9d61; } .nm { color: #d2691e; }
+  @media (prefers-color-scheme: dark) {
+    .kw { color: #d59bff; } .fn { color: #7fb8ff; } .st { color: #7fe0a8; } .nm { color: #ffb070; }
+  }
+  .vars { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+  .var { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; background: var(--bg); }
+  .var .k { font-size: 0.72rem; color: var(--muted); }
+  .var .v { font-family: ui-monospace, Consolas, monospace; font-weight: 700; font-size: 1rem; }
+  .v.t { color: var(--true); } .v.f { color: var(--false); }
+  .result { margin-top: 10px; font-weight: 700; font-size: 1.05rem; min-height: 1.5em; }
+  .kbd { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+  kbd { border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; font-size: 0.75rem; background: var(--bg); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>10. Regular Expression Matching</h1>
+    <div class="meta">
+      <span class="badge hard">Hard</span>
+      <span class="badge">String</span>
+      <span class="badge">Dynamic Programming</span>
+      <span class="badge">Recursion</span>
+      <a href="https://leetcode.com/problems/regular-expression-matching/" target="_blank" rel="noopener">View on LeetCode ↗</a>
+    </div>
+  </header>
+
+  <section class="panel desc" aria-labelledby="desc-h">
+    <details open>
+      <summary id="desc-h">Problem description</summary>
+      <p>Given an input string <code>s</code> and a pattern <code>p</code>, implement regular expression matching with support for <code>'.'</code> and <code>'*'</code> where:</p>
+      <ul>
+        <li><code>'.'</code> Matches any single character.</li>
+        <li><code>'*'</code> Matches zero or more of the preceding element.</li>
+      </ul>
+      <p>Return a boolean indicating whether the matching covers the <strong>entire</strong> input string (not partial).</p>
+      <p><strong>Example 1:</strong></p>
+      <pre><strong>Input:</strong> s = "aa", p = "a"
+<strong>Output:</strong> false
+<strong>Explanation:</strong> "a" does not match the entire string "aa".</pre>
+      <p><strong>Example 2:</strong></p>
+      <pre><strong>Input:</strong> s = "aa", p = "a*"
+<strong>Output:</strong> true
+<strong>Explanation:</strong> '*' means zero or more of the preceding element, 'a'. Therefore, by repeating 'a' once, it becomes "aa".</pre>
+      <p><strong>Example 3:</strong></p>
+      <pre><strong>Input:</strong> s = "ab", p = ".*"
+<strong>Output:</strong> true
+<strong>Explanation:</strong> ".*" means "zero or more (*) of any character (.)".</pre>
+      <p><strong>Constraints:</strong></p>
+      <ul>
+        <li><code>1 &lt;= s.length &lt;= 20</code></li>
+        <li><code>1 &lt;= p.length &lt;= 20</code></li>
+        <li><code>s</code> contains only lowercase English letters.</li>
+        <li><code>p</code> contains only lowercase English letters, <code>'.'</code>, and <code>'*'</code>.</li>
+        <li>It is guaranteed for each appearance of the character <code>'*'</code>, there will be a previous valid character to match.</li>
+      </ul>
+      <p><strong>Approach:</strong> bottom-up DP where <code>dp[i][j]</code> is <em>True</em> when suffix <code>s[i:]</code> matches pattern suffix <code>p[j:]</code>. Fill from the bottom-right corner; the answer is <code>dp[0][0]</code>.</p>
+    </details>
+  </section>
+
+  <section class="panel" aria-labelledby="in-h">
+    <h2 id="in-h">Input</h2>
+    <form class="inputs" id="form">
+      <label for="sIn">s (lowercase letters)
+        <input id="sIn" value="aab" maxlength="20" autocomplete="off" spellcheck="false">
+      </label>
+      <label for="pIn">p (letters, '.', '*')
+        <input id="pIn" value="c*a*b" maxlength="20" autocomplete="off" spellcheck="false">
+      </label>
+      <button type="submit" class="primary">Visualize</button>
+      <div class="presets" role="group" aria-label="Preset examples">
+        <button type="button" data-s="aa" data-p="a">"aa" / "a"</button>
+        <button type="button" data-s="aa" data-p="a*">"aa" / "a*"</button>
+        <button type="button" data-s="ab" data-p=".*">"ab" / ".*"</button>
+        <button type="button" data-s="aab" data-p="c*a*b">"aab" / "c*a*b"</button>
+        <button type="button" data-s="mississippi" data-p="mis*is*p*.">"mississippi" / "mis*is*p*."</button>
+      </div>
+    </form>
+    <div class="err" id="err" role="alert"></div>
+  </section>
+
+  <div class="grid-main">
+    <section class="panel" aria-labelledby="viz-h">
+      <h2 id="viz-h">Visualization</h2>
+      <div class="controls" role="toolbar" aria-label="Playback controls">
+        <button id="bRestart" aria-label="Restart (R)">⟲ Restart</button>
+        <button id="bBack" aria-label="Previous step (Left arrow)">◀ Back</button>
+        <button id="bPlay" class="primary" aria-label="Play (Space)">▶ Play</button>
+        <button id="bNext" aria-label="Next step (Right arrow)">Next ▶</button>
+        <label class="speed" for="speed">Speed
+          <select id="speed">
+            <option value="1200">0.5×</option>
+            <option value="700" selected>1×</option>
+            <option value="350">2×</option>
+            <option value="120">5×</option>
+          </select>
+        </label>
+      </div>
+      <div class="progress" aria-hidden="true"><div id="prog"></div></div>
+      <div class="sr-only" id="stepCount" aria-live="off"></div>
+      <div class="strings">
+        <div class="strrow" id="sRow" aria-label="String s"></div>
+        <div class="strrow" id="pRow" aria-label="Pattern p" style="margin-top:12px"></div>
+      </div>
+      <div class="tablewrap" style="margin-top:18px">
+        <table class="dp" id="dpTable" aria-label="DP table: dp[i][j] means s[i:] matches p[j:]"></table>
+      </div>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--true-bg)"></i>True</span>
+        <span><i class="sw" style="background:var(--false-bg)"></i>False</span>
+        <span><i class="sw" style="border:2px solid var(--cur)"></i>Current cell</span>
+        <span><i class="sw" style="outline:2px dashed var(--dep);outline-offset:-3px"></i>Cells read</span>
+      </div>
+    </section>
+
+    <div>
+      <section class="panel" aria-labelledby="nar-h">
+        <h2 id="nar-h">What's happening</h2>
+        <div class="narr" id="narr" aria-live="polite" aria-atomic="true"></div>
+        <div class="result" id="result"></div>
+      </section>
+      <section class="panel" aria-labelledby="st-h">
+        <h2 id="st-h">State</h2>
+        <div class="vars" id="vars"></div>
+      </section>
+      <section class="panel" aria-labelledby="code-h">
+        <h2 id="code-h">Python solution</h2>
+        <pre class="code" id="code" aria-label="Python source with current line highlighted"></pre>
+        <div class="kbd">Keys: <kbd>Space</kbd> play/pause · <kbd>←</kbd>/<kbd>→</kbd> step · <kbd>R</kbd> restart</div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const CODE = [
+    '<span class="kw">class</span> <span class="fn">Solution</span>:',
+    '    <span class="kw">def</span> <span class="fn">isMatch</span>(self, s: str, p: str) -> bool:',
+    '        m, n = <span class="fn">len</span>(s), <span class="fn">len</span>(p)',
+    '        dp = [[<span class="kw">False</span>] * (n + <span class="nm">1</span>) <span class="kw">for</span> _ <span class="kw">in</span> <span class="fn">range</span>(m + <span class="nm">1</span>)]',
+    '        dp[m][n] = <span class="kw">True</span>',
+    '        <span class="kw">for</span> i <span class="kw">in</span> <span class="fn">range</span>(m, -<span class="nm">1</span>, -<span class="nm">1</span>):',
+    '            <span class="kw">for</span> j <span class="kw">in</span> <span class="fn">range</span>(n - <span class="nm">1</span>, -<span class="nm">1</span>, -<span class="nm">1</span>):',
+    '                first = i &lt; m <span class="kw">and</span> p[j] <span class="kw">in</span> (s[i], <span class="st">\'.\'</span>)',
+    '                <span class="kw">if</span> j + <span class="nm">1</span> &lt; n <span class="kw">and</span> p[j + <span class="nm">1</span>] == <span class="st">\'*\'</span>:',
+    '                    dp[i][j] = dp[i][j + <span class="nm">2</span>] <span class="kw">or</span> (first <span class="kw">and</span> dp[i + <span class="nm">1</span>][j])',
+    '                <span class="kw">else</span>:',
+    '                    dp[i][j] = first <span class="kw">and</span> dp[i + <span class="nm">1</span>][j + <span class="nm">1</span>]',
+    '        <span class="kw">return</span> dp[<span class="nm">0</span>][<span class="nm">0</span>]'
+  ];
+  const $ = id => document.getElementById(id);
+  const codeEl = $('code');
+  codeEl.innerHTML = CODE.map(l => '<span class="ln">' + l + '</span>').join('');
+  const lines = codeEl.querySelectorAll('.ln');
+
+  let s = '', p = '', steps = [], cur = 0, timer = null;
+
+  function esc(x) { return String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+  const B = v => v ? 'True' : 'False';
+
+  function build() {
+    const m = s.length, n = p.length;
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(null));
+    const snap = () => dp.map(r => r.slice());
+    const out = [];
+    out.push({ line: 3, dp: snap(), i: null, j: null, deps: [],
+      msg: `Start. <code>m = ${m}</code>, <code>n = ${n}</code>. We'll build a table where <code>dp[i][j]</code> answers: does <code>s[i:]</code> match <code>p[j:]</code>?` });
+    for (let i = 0; i <= m; i++) for (let j = 0; j <= n; j++) dp[i][j] = false;
+    out.push({ line: 4, dp: snap(), i: null, j: null, deps: [],
+      msg: `Create a ${m + 1}×${n + 1} table filled with <code>False</code>. Row <code>m</code> and column <code>n</code> represent empty suffixes.` });
+    dp[m][n] = true;
+    out.push({ line: 5, dp: snap(), i: m, j: n, deps: [],
+      msg: `Base case: an empty string matches an empty pattern, so <code>dp[${m}][${n}] = True</code>.` });
+    for (let i = m; i >= 0; i--) {
+      for (let j = n - 1; j >= 0; j--) {
+        const first = i < m && (p[j] === s[i] || p[j] === '.');
+        const star = j + 1 < n && p[j + 1] === '*';
+        const si = i < m ? `'${s[i]}'` : '(end)';
+        let fmsg;
+        if (i >= m) fmsg = `<code>i = ${i}</code> is past the end of <code>s</code>, so <code>first = False</code>.`;
+        else fmsg = `Compare <code>p[${j}] = '${esc(p[j])}'</code> with <code>s[${i}] = ${si}</code>: <code>first = ${B(first)}</code>${p[j] === '.' ? " ('.' matches any char)" : ''}.`;
+        out.push({ line: 8, dp: snap(), i, j, deps: [], first, star: null, val: null, msg: fmsg });
+        out.push({ line: 9, dp: snap(), i, j, deps: [], first, star, val: null,
+          msg: star
+            ? `<code>p[${j + 1}] = '*'</code>, so <code>'${esc(p[j])}*'</code> is a star unit: we may skip it or consume one char.`
+            : `<code>p[${j + 1}]</code> is ${j + 1 < n ? `<code>'${esc(p[j + 1])}'</code>, not '*'` : 'out of range'} — plain single-character match.` });
+        let val, deps, msg;
+        if (star) {
+          const skip = dp[i][j + 2];
+          const use = first && dp[i + 1][j];
+          val = skip || use;
+          deps = [[i, j + 2]];
+          if (first) deps.push([i + 1, j]);
+          msg = `Skip <code>'${esc(p[j])}*'</code> → <code>dp[${i}][${j + 2}] = ${B(skip)}</code>; ` +
+            (first ? `use it once → <code>dp[${i + 1}][${j}] = ${B(dp[i + 1][j])}</code>` : `can't use it (first is False)`) +
+            `. So <code>dp[${i}][${j}] = ${B(val)}</code>.`;
+          dp[i][j] = val;
+          out.push({ line: 10, dp: snap(), i, j, deps, first, star, val, msg });
+        } else {
+          val = first && dp[i + 1][j + 1];
+          deps = first ? [[i + 1, j + 1]] : [];
+          msg = first
+            ? `Characters match; result follows <code>dp[${i + 1}][${j + 1}] = ${B(dp[i + 1][j + 1])}</code>. So <code>dp[${i}][${j}] = ${B(val)}</code>.`
+            : `First characters don't match, so <code>dp[${i}][${j}] = False</code>.`;
+          dp[i][j] = val;
+          out.push({ line: 12, dp: snap(), i, j, deps, first, star, val, msg });
+        }
+      }
+    }
+    out.push({ line: 13, dp: snap(), i: 0, j: 0, deps: [], final: true, val: dp[0][0],
+      msg: `Done. <code>dp[0][0] = ${B(dp[0][0])}</code>: <code>"${esc(s)}"</code> ${dp[0][0] ? 'matches' : 'does not match'} pattern <code>"${esc(p)}"</code>.` });
+    return out;
+  }
+
+  function renderStrings(st) {
+    const mk = (str, isP, active) => {
+      let h = `<span class="lbl">${isP ? 'p' : 's'}</span>`;
+      for (let k = 0; k < str.length; k++) {
+        const cls = ['ch'];
+        if (active !== null && k === active) cls.push('on');
+        if (isP && st.star && active !== null && k === active + 1) cls.push('star');
+        if (active !== null && k < active && !st.final) cls.push('done');
+        h += `<span class="${cls.join(' ')}" aria-label="${isP ? 'p' : 's'}[${k}] = ${esc(str[k])}">${esc(str[k])}<small>${k}</small></span>`;
+      }
+      return h;
+    };
+    $('sRow').innerHTML = mk(s, false, st.i);
+    $('pRow').innerHTML = mk(p, true, st.j);
+  }
+
+  function renderTable(st) {
+    const m = s.length, n = p.length;
+    let h = '<thead><tr><th scope="col"><span class="sr-only">row</span></th>';
+    for (let j = 0; j <= n; j++) h += `<th scope="col">${j < n ? esc(p[j]) : 'ε'}<span class="idx">j=${j}</span></th>`;
+    h += '</tr></thead><tbody>';
+    const depSet = new Set(st.deps.map(d => d[0] + ',' + d[1]));
+    for (let i = 0; i <= m; i++) {
+      h += `<tr><th scope="row">${i < m ? esc(s[i]) : 'ε'}<span class="idx">i=${i}</span></th>`;
+      for (let j = 0; j <= n; j++) {
+        const v = st.dp[i][j];
+        const cls = [];
+        if (v === true) cls.push('T'); else if (v === false) cls.push('F');
+        if (depSet.has(i + ',' + j)) cls.push('dep');
+        if (st.i === i && st.j === j) cls.push(st.final ? 'ans' : 'cur');
+        const txt = v === null ? '' : (v ? 'T' : 'F');
+        h += `<td class="${cls.join(' ')}" aria-label="dp[${i}][${j}] ${v === null ? 'unset' : B(v)}">${txt}</td>`;
+      }
+      h += '</tr>';
+    }
+    $('dpTable').innerHTML = h + '</tbody>';
+  }
+
+  function renderVars(st) {
+    const bv = v => v === null || v === undefined ? '<span class="v">—</span>' : `<span class="v ${v ? 't' : 'f'}">${B(v)}</span>`;
+    const item = (k, v) => `<div class="var"><div class="k">${k}</div>${v}</div>`;
+    const plain = v => `<span class="v">${v}</span>`;
+    const i = st.i, j = st.j;
+    $('vars').innerHTML =
+      item('m, n', plain(`${s.length}, ${p.length}`)) +
+      item('i', plain(i === null ? '—' : i)) +
+      item('j', plain(j === null ? '—' : j)) +
+      item('s[i]', plain(i !== null && i < s.length ? `'${esc(s[i])}'` : '—')) +
+      item('p[j]', plain(j !== null && j < p.length ? `'${esc(p[j])}'` : '—')) +
+      item('first', bv(st.first)) +
+      item('next is *', st.star === null || st.star === undefined ? plain('—') : bv(st.star)) +
+      item('dp[i][j]', bv(st.val));
+  }
+
+  function render() {
+    const st = steps[cur];
+    lines.forEach((l, k) => l.classList.toggle('hl', k === st.line - 1));
+    renderStrings(st);
+    renderTable(st);
+    renderVars(st);
+    $('narr').innerHTML = `<strong>Step ${cur + 1}/${steps.length}:</strong> ` + st.msg;
+    $('prog').style.width = (steps.length > 1 ? cur / (steps.length - 1) * 100 : 100) + '%';
+    const r = $('result');
+    if (st.final) { r.textContent = 'Output: ' + (st.val ? 'true' : 'false'); r.style.color = st.val ? 'var(--true)' : 'var(--false)'; }
+    else { r.textContent = ''; }
+    $('bBack').disabled = cur === 0;
+    $('bNext').disabled = cur === steps.length - 1;
+  }
+
+  function stop() {
+    if (timer) clearInterval(timer);
+    timer = null;
+    $('bPlay').textContent = '▶ Play';
+    $('bPlay').setAttribute('aria-label', 'Play (Space)');
+  }
+  function play() {
+    if (cur >= steps.length - 1) cur = 0;
+    $('bPlay').textContent = '⏸ Pause';
+    $('bPlay').setAttribute('aria-label', 'Pause (Space)');
+    render();
+    timer = setInterval(() => {
+      if (cur >= steps.length - 1) { stop(); return; }
+      cur++; render();
+    }, +$('speed').value);
+  }
+  const toggle = () => timer ? stop() : play();
+  const next = () => { stop(); if (cur < steps.length - 1) { cur++; render(); } };
+  const back = () => { stop(); if (cur > 0) { cur--; render(); } };
+  const restart = () => { stop(); cur = 0; render(); };
+
+  function load(ns, np) {
+    const err = $('err');
+    if (!/^[a-z]{1,20}$/.test(ns)) { err.textContent = 's must be 1–20 lowercase letters.'; return; }
+    if (!/^[a-z.*]{1,20}$/.test(np)) { err.textContent = "p must be 1–20 chars of lowercase letters, '.', '*'."; return; }
+    for (let k = 0; k < np.length; k++) {
+      if (np[k] === '*' && (k === 0 || np[k - 1] === '*')) { err.textContent = "Each '*' must follow a letter or '.'."; return; }
+    }
+    err.textContent = '';
+    stop();
+    s = ns; p = np;
+    $('sIn').value = s; $('pIn').value = p;
+    steps = build(); cur = 0; render();
+  }
+
+  $('form').addEventListener('submit', e => { e.preventDefault(); load($('sIn').value.trim(), $('pIn').value.trim()); });
+  document.querySelectorAll('.presets button').forEach(b => b.addEventListener('click', () => load(b.dataset.s, b.dataset.p)));
+  $('bPlay').addEventListener('click', toggle);
+  $('bNext').addEventListener('click', next);
+  $('bBack').addEventListener('click', back);
+  $('bRestart').addEventListener('click', restart);
+  $('speed').addEventListener('change', () => { if (timer) { stop(); play(); } });
+
+  document.addEventListener('keydown', e => {
+    const t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'SELECT' || t.tagName === 'TEXTAREA')) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === ' ' || e.code === 'Space') {
+      if (t && (t.tagName === 'BUTTON' || t.tagName === 'SUMMARY')) return;
+      e.preventDefault(); toggle();
+    } else if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); back(); }
+    else if (e.key === 'r' || e.key === 'R') { e.preventDefault(); restart(); }
+  });
+
+  load('aab', 'c*a*b');
+})();
+</script>
+</body>
+</html>
