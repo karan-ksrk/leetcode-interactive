@@ -18,8 +18,10 @@ class LeetCodeClient:
         self.timeout = timeout
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "LeetCode-Interactive-Generator/1.0",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Content-Type": "application/json",
+            "Referer": "https://leetcode.com/",
+            "Accept": "application/json",
         })
 
     def _post_graphql(self, query: str, variables: dict) -> dict:
@@ -104,17 +106,18 @@ class LeetCodeClient:
     def get_problems_by_difficulty(self, difficulty: str, limit: int = 50, skip: int = 0) -> List[dict]:
         """Fetch problems by difficulty level."""
         # Normalize difficulty
-        difficulty_upper = difficulty.upper()
-        if difficulty_upper not in ["EASY", "MEDIUM", "HARD"]:
+        difficulty_map = {"easy": "Easy", "medium": "Medium", "hard": "Hard"}
+        difficulty_display = difficulty_map.get(difficulty.lower())
+        if not difficulty_display:
             raise ValueError(f"Invalid difficulty: {difficulty}")
 
         query = """
-        query problemsetQuestionList($difficulty: String, $limit: Int, $skip: Int) {
+        query getProblems($categorySlug: String, $limit: Int, $skip: Int, $filters: QuestionListFilterInput) {
             problemsetQuestionList(
-                filters: {difficulty: $difficulty}
+                categorySlug: $categorySlug
                 limit: $limit
                 skip: $skip
-                orderBy: FRONTEND_ID
+                filters: $filters
             ) {
                 total
                 questions {
@@ -131,11 +134,16 @@ class LeetCodeClient:
         }
         """
 
-        data = self._post_graphql(query, {
-            "difficulty": difficulty_upper,
-            "limit": limit,
-            "skip": skip,
-        })
+        try:
+            data = self._post_graphql(query, {
+                "categorySlug": "all-code-problems",
+                "limit": limit,
+                "skip": skip,
+                "filters": {"difficulty": difficulty_display},
+            })
 
-        problem_list = data.get("problemsetQuestionList", {})
-        return problem_list.get("questions", [])
+            problem_list = data.get("problemsetQuestionList", {})
+            return problem_list.get("questions", [])
+        except Exception as e:
+            print(f"API Error: {e}. Try single problem mode instead (option 1)")
+            return []

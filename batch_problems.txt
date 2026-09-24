@@ -1,0 +1,10 @@
+# LeetCode Problem URLs for Batch Generation
+# Add one URL per line. Lines starting with # are ignored.
+#
+# Generate these problems by running: python batch_generate.py
+
+https://leetcode.com/problems/add-two-numbers/
+https://leetcode.com/problems/longest-substring-without-repeating-characters/
+https://leetcode.com/problems/median-of-two-sorted-arrays/
+https://leetcode.com/problems/longest-palindromic-substring/
+https://leetcode.com/problems/zigzag-conversion/

@@ -1,0 +1,41 @@
+=== Batch Generation Workaround ===
+
+Since LeetCode's API is unreliable, use this approach for batch generation:
+
+Option 1: Generate problems one-by-one (RECOMMENDED)
+=========================================
+python -m generator
+Select: 1
+Paste URL: https://leetcode.com/problems/two-sum/
+Agent: claude
+[Wait for completion]
+
+Repeat for each problem you want to generate.
+
+Option 2: Use a list of URLs
+=========================================
+Create a file "batch_problems.txt":
+  https://leetcode.com/problems/two-sum/
+  https://leetcode.com/problems/add-two-numbers/
+  https://leetcode.com/problems/longest-substring-without-repeating-characters/
+  https://leetcode.com/problems/median-of-two-sorted-arrays/
+  https://leetcode.com/problems/longest-palindromic-substring/
+
+Then run this Python script:
+  python batch_generate.py
+
+Option 3: Fix the batch manager
+========================================
+If you want true parallel batch generation:
+1. Update batch_manager.py to accept a list of problem URLs
+2. Have it generate each URL in parallel
+
+For now, stick with Option 1 (single problem mode is reliable).
+
+=== Status ===
+✓ Single problem generation works
+✓ Frontend works
+✓ Validation works
+✗ Batch mode API calls (LeetCode blocked)
+
+Use: python -m generator → Option 1
