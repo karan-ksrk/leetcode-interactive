@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+dist/
+build/
+
+# Secrets
+.env
+
+# Runtime SQLite database (created at runtime, never committed)
+database/*.db
+database/*.db-wal
+database/*.db-shm
+
+# Generation staging area (transient agent output before validation/move)
+data/staging/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Note: data/fetched/*.json is NOT ignored (committed for reproducibility)
+# Note: problems/ directory IS committed (contains generated HTML + .gitkeep)
+# Note: database/.gitkeep IS committed (the .db files in this dir are ignored above)
