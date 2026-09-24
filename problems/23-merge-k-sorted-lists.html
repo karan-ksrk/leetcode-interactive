@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>23. Merge k Sorted Lists — Interactive Visualization</title>
+<style>
+:root{
+  --bg:#f6f7fb;--panel:#ffffff;--text:#1d2330;--muted:#5d6678;--border:#dde1ea;
+  --accent:#3b6cf6;--accent-soft:rgba(59,108,246,.12);--hl:#fff3c4;--hl-border:#e0b400;
+  --hard:#d64545;--code-bg:#f2f4f9;--done:.35;
+  --c0:#3b6cf6;--c1:#e0467c;--c2:#16a37a;--c3:#e08a16;--c4:#8b5cf6;--c5:#0ea5b7;--c6:#b45309;--c7:#64748b;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1218;--panel:#171b24;--text:#e6e9f0;--muted:#98a1b3;--border:#2a3140;
+    --accent:#7aa2ff;--accent-soft:rgba(122,162,255,.16);--hl:#3a3212;--hl-border:#d9b21c;
+    --hard:#ff6b6b;--code-bg:#11151c;
+    --c0:#7aa2ff;--c1:#ff6fa0;--c2:#3ed3a2;--c3:#ffb347;--c4:#b69bff;--c5:#4fd6e6;--c6:#e5a266;--c7:#a3b1c6;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.5}
+header{padding:20px 24px 8px;max-width:1300px;margin:0 auto}
+h1{margin:0 0 6px;font-size:1.6rem}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8rem;font-weight:600;margin-right:6px;border:1px solid var(--border)}
+.badge.hard{color:var(--hard);border-color:var(--hard)}
+.topic{color:var(--muted)}
+main{max-width:1300px;margin:0 auto;padding:8px 24px 32px;display:grid;gap:16px;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+@media (max-width:900px){main{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.panel h2{margin:0 0 10px;font-size:1rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.full{grid-column:1/-1}
+.desc p{margin:.4em 0}
+.desc code,.inline{background:var(--code-bg);padding:1px 5px;border-radius:4px;font-family:ui-monospace,Consolas,monospace;font-size:.9em}
+details summary{cursor:pointer;color:var(--accent);font-weight:600}
+.examples{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:8px}
+.ex{background:var(--code-bg);border-radius:8px;padding:8px 12px;font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
+.inputbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.inputbar input[type=text]{flex:1 1 260px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--code-bg);color:var(--text);font-family:ui-monospace,Consolas,monospace}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--panel);color:var(--text);cursor:pointer;font-weight:600}
+button:hover{border-color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.err{color:var(--hard);font-size:.85rem;width:100%}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls .grow{flex:1 1 180px;display:flex;align-items:center;gap:8px}
+.controls input[type=range]{flex:1;accent-color:var(--accent)}
+.stepinfo{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}
+.narr{margin-top:12px;padding:10px 14px;border-left:4px solid var(--accent);background:var(--accent-soft);border-radius:6px;min-height:2.6em;font-weight:500}
+.kbd{font-size:.8rem;color:var(--muted);margin-top:8px}
+kbd{border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-family:inherit;font-size:.8rem}
+.lists{display:flex;flex-direction:column;gap:8px}
+.lrow{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;border:1px solid transparent;flex-wrap:wrap;transition:background .2s}
+.lrow.active{background:var(--hl);border-color:var(--hl-border)}
+.lbl{font-family:ui-monospace,Consolas,monospace;font-size:.8rem;color:var(--muted);width:62px;flex-shrink:0}
+.node{min-width:38px;height:38px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:2px solid var(--lc);color:var(--text);font-weight:700;font-family:ui-monospace,Consolas,monospace;background:var(--panel);transition:all .25s}
+.node.heap{background:var(--lc);color:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.node.done{opacity:var(--done);border-style:dashed}
+.node.cur{transform:translateY(-4px) scale(1.08);box-shadow:0 0 0 4px var(--hl-border)}
+.arrow{color:var(--muted);font-size:.9rem}
+.null{color:var(--muted);font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
+.empty-note{color:var(--muted);font-style:italic;font-size:.9rem}
+.heapwrap{width:100%;overflow-x:auto}
+svg text{font-family:ui-monospace,Consolas,monospace}
+.harr{font-family:ui-monospace,Consolas,monospace;font-size:.85rem;margin-top:6px;color:var(--muted);word-break:break-word}
+.result{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:44px}
+.result .node.new{animation:pop .4s ease}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+pre.code{margin:0;background:var(--code-bg);border-radius:8px;padding:10px 0;overflow-x:auto;font-family:ui-monospace,Consolas,monospace;font-size:.85rem;line-height:1.55}
+.cl{display:block;padding:0 12px 0 0;white-space:pre;border-left:4px solid transparent}
+.cl .ln{display:inline-block;width:2.6em;text-align:right;padding-right:10px;color:var(--muted);user-select:none}
+.cl.on{background:var(--hl);border-left-color:var(--hl-border)}
+.kw{color:#b3368b}.fn{color:#2f6fd1}.cm{color:#7d8799;font-style:italic}.num{color:#c2410c}
+@media (prefers-color-scheme:dark){.kw{color:#f08bd0}.fn{color:#86b3ff}.num{color:#ffab70}.cm{color:#7b8496}}
+table.vars{width:100%;border-collapse:collapse;font-family:ui-monospace,Consolas,monospace;font-size:.85rem}
+table.vars td{padding:5px 8px;border-bottom:1px solid var(--border);vertical-align:top;word-break:break-word}
+table.vars td:first-child{color:var(--muted);width:90px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:14px;height:14px;border-radius:4px;border:2px solid var(--accent);display:inline-block}
+.sw.f{background:var(--accent)}.sw.d{border-style:dashed;opacity:.5}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.cx{font-size:.85rem;color:var(--muted);margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>23. Merge k Sorted Lists</h1>
+  <div>
+    <span class="badge hard">Hard</span>
+    <span class="topic">Linked List · Divide and Conquer · Heap (Priority Queue) · Merge Sort</span>
+  </div>
+</header>
+
+<main>
+  <section class="panel full desc" aria-labelledby="pd">
+    <h2 id="pd">Problem</h2>
+    <p>You are given an array of <code>k</code> linked-lists <code>lists</code>, each linked-list sorted in ascending order.</p>
+    <p><em>Merge all the linked-lists into one sorted linked-list and return it.</em></p>
+    <details>
+      <summary>Examples &amp; constraints</summary>
+      <div class="examples">
+        <div class="ex"><strong>Example 1</strong><br>Input: lists = [[1,4,5],[1,3,4],[2,6]]<br>Output: [1,1,2,3,4,4,5,6]</div>
+        <div class="ex"><strong>Example 2</strong><br>Input: lists = []<br>Output: []</div>
+        <div class="ex"><strong>Example 3</strong><br>Input: lists = [[]]<br>Output: []</div>
+      </div>
+      <ul class="cx">
+        <li><code>k == lists.length</code>, <code>0 &lt;= k &lt;= 10<sup>4</sup></code></li>
+        <li><code>0 &lt;= lists[i].length &lt;= 500</code></li>
+        <li><code>-10<sup>4</sup> &lt;= lists[i][j] &lt;= 10<sup>4</sup></code></li>
+        <li><code>lists[i]</code> is sorted in ascending order; total nodes ≤ <code>10<sup>4</sup></code></li>
+      </ul>
+    </details>
+    <p class="cx"><strong>Approach:</strong> keep a min-heap holding the current head of every list. Repeatedly pop the smallest node, append it to the result, and push that node's successor. Time <span class="inline">O(N log k)</span>, space <span class="inline">O(k)</span>.</p>
+    <form class="inputbar" id="form" aria-label="Custom input">
+      <label for="inp" class="lbl" style="width:auto">lists =</label>
+      <input type="text" id="inp" value="[[1,4,5],[1,3,4],[2,6]]" aria-describedby="err" spellcheck="false">
+      <button type="submit" class="primary">Load</button>
+      <button type="button" data-ex="[[1,4,5],[1,3,4],[2,6]]">Ex 1</button>
+      <button type="button" data-ex="[]">Ex 2</button>
+      <button type="button" data-ex="[[]]">Ex 3</button>
+      <button type="button" data-ex="[[2,9,15],[1,7],[4,5,12,20],[3,18]]">Random-ish</button>
+      <div class="err" id="err" role="alert"></div>
+    </form>
+  </section>
+
+  <section class="panel full" aria-labelledby="ctl">
+    <h2 id="ctl" class="sr">Controls</h2>
+    <div class="controls">
+      <button id="bRestart" aria-label="Restart (R)">⟲ Restart</button>
+      <button id="bBack" aria-label="Previous step (Left arrow)">◀ Back</button>
+      <button id="bPlay" class="primary" aria-label="Play (Space)">▶ Play</button>
+      <button id="bNext" aria-label="Next step (Right arrow)">Next ▶</button>
+      <div class="grow">
+        <label for="scrub" class="stepinfo" id="stepinfo">Step 1 / 1</label>
+        <input type="range" id="scrub" min="0" max="0" value="0" aria-label="Scrub steps">
+      </div>
+      <div class="grow" style="flex:0 1 200px">
+        <label for="speed" class="stepinfo">Speed</label>
+        <input type="range" id="speed" min="1" max="10" value="5" aria-label="Playback speed">
+      </div>
+    </div>
+    <div class="narr" id="narr" aria-live="polite" aria-atomic="true"></div>
+    <div class="kbd"><kbd>Space</kbd> play/pause · <kbd>←</kbd>/<kbd>→</kbd> step · <kbd>R</kbd> restart</div>
+  </section>
+
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <section class="panel" aria-labelledby="h-lists">
+      <h2 id="h-lists">Input lists</h2>
+      <div class="lists" id="lists"></div>
+      <div class="legend">
+        <span><i class="sw"></i>waiting</span>
+        <span><i class="sw f"></i>in heap</span>
+        <span><i class="sw d"></i>merged</span>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="h-heap">
+      <h2 id="h-heap">Min-heap (val, list index)</h2>
+      <div class="heapwrap"><svg id="heap" width="100%" height="200" role="img" aria-label="Min-heap tree"></svg></div>
+      <div class="harr" id="harr"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-res">
+      <h2 id="h-res">Merged result (dummy → …)</h2>
+      <div class="result" id="result"></div>
+    </section>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+    <section class="panel" aria-labelledby="h-code">
+      <h2 id="h-code">Python solution</h2>
+      <pre class="code" id="code" aria-label="Python source code"></pre>
+    </section>
+    <section class="panel" aria-labelledby="h-vars">
+      <h2 id="h-vars">State</h2>
+      <table class="vars"><tbody id="vars"></tbody></table>
+    </section>
+  </div>
+</main>
+
+<script>
+(function(){
+const CODE=[
+ ["cm","import heapq"],
+ ["","class Solution:"],
+ ["","    def mergeKLists(self, lists):"],
+ ["","        heap = []"],
+ ["","        for i, node in enumerate(lists):"],
+ ["","            if node:"],
+ ["","                heapq.heappush(heap, (node.val, i, node))"],
+ ["","        dummy = tail = ListNode(0)"],
+ ["","        while heap:"],
+ ["","            val, i, node = heapq.heappop(heap)"],
+ ["","            tail.next = node"],
+ ["","            tail = tail.next"],
+ ["","            if node.next:"],
+ ["","                heapq.heappush(heap, (node.next.val, i, node.next))"],
+ ["","        return dummy.next"]
+];
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function hlPy(s){
+  let h=esc(s);
+  h=h.replace(/\b(import|class|def|for|in|if|while|return)\b/g,'<span class="kw">$1</span>');
+  h=h.replace(/\b(mergeKLists|heappush|heappop|enumerate|ListNode)\b/g,'<span class="fn">$1</span>');
+  h=h.replace(/\b(0)\b/g,'<span class="num">$1</span>');
+  return h;
+}
+const codeEl=document.getElementById("code");
+codeEl.innerHTML=CODE.map((c,i)=>`<span class="cl" id="L${i+1}"><span class="ln">${i+1}</span>${hlPy(c[1])}</span>`).join("");
+
+const cmp=(a,b)=>a[0]-b[0]||a[1]-b[1];
+function hpush(h,x){h.push(x);let i=h.length-1;while(i>0){const p=(i-1)>>1;if(cmp(h[i],h[p])<0){[h[i],h[p]]=[h[p],h[i]];i=p;}else break;}}
+function hpop(h){const top=h[0];const last=h.pop();if(h.length){h[0]=last;let i=0;for(;;){let l=2*i+1,r=l+1,m=i;if(l<h.length&&cmp(h[l],h[m])<0)m=l;if(r<h.length&&cmp(h[r],h[m])<0)m=r;if(m===i)break;[h[i],h[m]]=[h[m],h[i]];i=m;}}return top;}
+const tup=e=>`(${e[0]}, ${e[1]})`;
+
+function build(lists){
+  const S=[],heap=[],res=[];
+  const status=lists.map(l=>l.map(()=>"wait"));
+  const snap=(line,msg,vars,hl)=>S.push({line,msg,vars:vars||{},hl:hl||{},heap:heap.map(e=>e.slice()),status:status.map(r=>r.slice()),res:res.map(r=>r.slice())});
+  snap(4,`Create an empty min-heap. There are k = ${lists.length} list${lists.length===1?"":"s"}.`,{k:lists.length});
+  if(!lists.length) snap(5,"lists is empty — the for-loop body never runs.",{});
+  lists.forEach((l,i)=>{
+    const head=l.length?l[0]:"None";
+    snap(5,`Loop: i = ${i}, node = head of list ${i} (${head}).`,{i,node:head},{list:i,node:l.length?[i,0]:null});
+    if(l.length){
+      snap(6,`List ${i} is non-empty, so its head goes into the heap.`,{i,node:head},{list:i,node:[i,0]});
+      hpush(heap,[l[0],i,0]);status[i][0]="heap";
+      snap(7,`Push (${l[0]}, ${i}) into the heap. The heap re-orders so the smallest is on top.`,{i,node:head},{list:i,node:[i,0],pushed:true});
+    }else{
+      snap(6,`List ${i} is empty (None) — skip it.`,{i,node:"None"},{list:i});
+    }
+  });
+  snap(8,"Create a dummy head node; tail points at it. We'll append merged nodes after tail.",{tail:"dummy"});
+  let tail="dummy";
+  while(heap.length){
+    snap(9,`Heap has ${heap.length} entr${heap.length===1?"y":"ies"} → keep merging. Minimum is ${tup(heap[0])}.`,{tail},{top:true});
+    const [v,i,j]=hpop(heap);status[i][j]="done";
+    snap(10,`Pop the smallest: val = ${v} from list ${i}.`,{val:v,i,node:v,tail},{list:i,node:[i,j]});
+    res.push([v,i]);
+    snap(11,`Link tail.next → node ${v}.`,{val:v,i,node:v,tail},{list:i,node:[i,j],newRes:true});
+    tail=v;
+    snap(12,`Move tail forward to node ${v}.`,{val:v,i,node:v,tail},{list:i,node:[i,j]});
+    const has=j+1<lists[i].length;
+    snap(13,has?`node.next exists (${lists[i][j+1]}) in list ${i}.`:`node.next is None — list ${i} is exhausted.`,{val:v,i,node:v,"node.next":has?lists[i][j+1]:"None",tail},{list:i,node:has?[i,j+1]:[i,j]});
+    if(has){
+      hpush(heap,[lists[i][j+1],i,j+1]);status[i][j+1]="heap";
+      snap(14,`Push (${lists[i][j+1]}, ${i}) — the next candidate from list ${i}.`,{val:v,i,node:v,"node.next":lists[i][j+1],tail},{list:i,node:[i,j+1],pushed:true});
+    }
+  }
+  snap(9,"Heap is empty → every node has been merged. Exit loop.",{tail});
+  snap(15,`Return dummy.next: [${res.map(r=>r[0]).join(", ")}].`,{tail,"return":`[${res.map(r=>r[0]).join(",")}]`},{done:true});
+  return S;
+}
+
+let LISTS=[],STEPS=[],cur=0,timer=null;
+const $=id=>document.getElementById(id);
+const col=i=>`var(--c${i%8})`;
+
+function render(){
+  const s=STEPS[cur];
+  document.querySelectorAll(".cl.on").forEach(e=>e.classList.remove("on"));
+  const ln=$("L"+s.line);ln.classList.add("on");
+  const cr=codeEl.getBoundingClientRect(),lr=ln.getBoundingClientRect();
+  if(lr.top<cr.top||lr.bottom>cr.bottom)ln.scrollIntoView({block:"nearest"});
+  $("narr").textContent=s.msg;
+  $("stepinfo").textContent=`Step ${cur+1} / ${STEPS.length}`;
+  $("scrub").value=cur;$("scrub").setAttribute("aria-valuetext",`Step ${cur+1} of ${STEPS.length}`);
+  $("bBack").disabled=cur===0;$("bNext").disabled=cur===STEPS.length-1;
+
+  // lists
+  const L=$("lists");
+  if(!LISTS.length){L.innerHTML='<div class="empty-note">lists = [] (no lists)</div>';}
+  else L.innerHTML=LISTS.map((l,i)=>{
+    const nodes=l.map((v,j)=>{
+      const st=s.status[i][j];const isCur=s.hl.node&&s.hl.node[0]===i&&s.hl.node[1]===j;
+      return `<span class="node ${st}${isCur?" cur":""}" style="--lc:${col(i)}" aria-label="value ${v}, ${st==="wait"?"waiting":st==="heap"?"in heap":"merged"}">${v}</span>`;
+    }).join('<span class="arrow" aria-hidden="true">→</span>');
+    return `<div class="lrow${s.hl.list===i?" active":""}"><span class="lbl" style="color:${col(i)}">lists[${i}]</span>${nodes}${l.length?'<span class="arrow" aria-hidden="true">→</span>':''}<span class="null">None</span></div>`;
+  }).join("");
+
+  // heap
+  drawHeap(s);
+  $("harr").textContent="heap = ["+s.heap.map(tup).join(", ")+"]";
+
+  // result
+  const R=$("result");
+  let h='<span class="node" style="--lc:var(--muted);opacity:.7">dummy</span>';
+  s.res.forEach((r,idx)=>{
+    h+=`<span class="arrow" aria-hidden="true">→</span><span class="node heap${s.hl.newRes&&idx===s.res.length-1?" new cur":""}" style="--lc:${col(r[1])}" title="from list ${r[1]}">${r[0]}</span>`;
+  });
+  h+='<span class="arrow" aria-hidden="true">→</span><span class="null">None</span>';
+  R.innerHTML=h;
+
+  // vars
+  const v=Object.assign({},s.vars,{heap:"["+s.heap.map(tup).join(", ")+"]",merged:"["+s.res.map(r=>r[0]).join(", ")+"]"});
+  $("vars").innerHTML=Object.entries(v).map(([k,x])=>`<tr><td>${esc(k)}</td><td>${esc(String(x))}</td></tr>`).join("");
+}
+
+function drawHeap(s){
+  const svg=$("heap"),H=s.heap,n=H.length;
+  const levels=n?Math.floor(Math.log2(n))+1:1;
+  const W=Math.max(320,Math.pow(2,levels-1)*52),h=levels*62+20;
+  svg.setAttribute("viewBox",`0 0 ${W} ${h}`);svg.setAttribute("height",Math.min(h,320));
+  if(!n){svg.innerHTML=`<text x="${W/2}" y="${h/2+5}" text-anchor="middle" fill="currentColor" opacity=".6" font-size="14">(empty heap)</text>`;return;}
+  const pos=i=>{const lv=Math.floor(Math.log2(i+1)),p=i-(Math.pow(2,lv)-1),cnt=Math.pow(2,lv);return[(p+.5)/cnt*W,30+lv*62];};
+  let edges="",nodes="";
+  for(let i=1;i<n;i++){const[a,b]=pos(i),[c,d]=pos((i-1)>>1);edges+=`<line x1="${c}" y1="${d}" x2="${a}" y2="${b}" stroke="currentColor" stroke-opacity=".3" stroke-width="2"/>`;}
+  H.forEach((e,i)=>{
+    const[x,y]=pos(i);const isNew=s.hl.pushed&&s.hl.node&&e[1]===s.hl.node[0]&&e[2]===s.hl.node[1];
+    const isTop=i===0&&(s.hl.top);
+    nodes+=`<g><circle cx="${x}" cy="${y}" r="20" fill="${col(e[1])}" stroke="${isNew||isTop?"var(--hl-border)":"none"}" stroke-width="4"/>
+      <text x="${x}" y="${y+5}" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">${e[0]}</text>
+      <text x="${x+22}" y="${y+20}" fill="${col(e[1])}" font-size="10">L${e[1]}</text></g>`;
+  });
+  svg.innerHTML=edges+nodes;
+  svg.setAttribute("aria-label","Min-heap: "+H.map(tup).join(", "));
+}
+
+function go(i){cur=Math.max(0,Math.min(STEPS.length-1,i));render();if(cur===STEPS.length-1)stop();}
+function delay(){return 2200-(+$("speed").value)*190;}
+function play(){if(cur===STEPS.length-1)cur=0;$("bPlay").textContent="⏸ Pause";$("bPlay").setAttribute("aria-label","Pause (Space)");render();tick();}
+function tick(){timer=setTimeout(()=>{if(cur<STEPS.length-1){go(cur+1);if(timer)tick();}else stop();},delay());}
+function stop(){clearTimeout(timer);timer=null;$("bPlay").textContent="▶ Play";$("bPlay").setAttribute("aria-label","Play (Space)");}
+function toggle(){timer?stop():play();}
+
+function load(str){
+  const err=$("err");err.textContent="";
+  let v;
+  try{v=JSON.parse(str);}catch(e){err.textContent="Invalid JSON. Example: [[1,4,5],[1,3,4],[2,6]]";return;}
+  if(!Array.isArray(v)||!v.every(a=>Array.isArray(a)&&a.every(x=>Number.isInteger(x)))){err.textContent="Expected an array of integer arrays.";return;}
+  if(v.length>8||v.some(a=>a.length>8)){err.textContent="For visualization, use at most 8 lists with at most 8 nodes each.";return;}
+  let sorted=false;
+  v=v.map(a=>{const b=a.slice().sort((x,y)=>x-y);if(b.some((x,i)=>x!==a[i]))sorted=true;return b;});
+  if(sorted)err.textContent="Note: lists must be ascending — they were sorted for you.";
+  stop();LISTS=v;STEPS=build(v);cur=0;
+  $("scrub").max=STEPS.length-1;$("inp").value=JSON.stringify(v);
+  render();
+}
+
+$("form").addEventListener("submit",e=>{e.preventDefault();load($("inp").value);});
+document.querySelectorAll("[data-ex]").forEach(b=>b.addEventListener("click",()=>{$("inp").value=b.dataset.ex;load(b.dataset.ex);}));
+$("bPlay").addEventListener("click",toggle);
+$("bNext").addEventListener("click",()=>{stop();go(cur+1);});
+$("bBack").addEventListener("click",()=>{stop();go(cur-1);});
+$("bRestart").addEventListener("click",()=>{stop();go(0);});
+$("scrub").addEventListener("input",e=>{stop();go(+e.target.value);});
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT"&&e.target.type==="text")return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  if(e.key===" "){if(e.target.tagName==="BUTTON"||e.target.tagName==="SUMMARY")return;e.preventDefault();toggle();}
+  else if(e.key==="ArrowRight"){e.preventDefault();stop();go(cur+1);}
+  else if(e.key==="ArrowLeft"){e.preventDefault();stop();go(cur-1);}
+  else if(e.key==="r"||e.key==="R"){stop();go(0);}
+});
+load($("inp").value);
+})();
+</script>
+</body>
+</html>

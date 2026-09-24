@@ -156,8 +156,9 @@ class BatchManager:
     def _run_sequential(self, batch_id: int, candidates: list, agent_factory):
         """Generate problems one-by-one."""
         for i, problem_data in enumerate(candidates, 1):
-            problem_id = problem_data.get("questionFrontendId", problem_data.get("questionId"))
-            problem_slug = problem_data.get("titleSlug")
+            # API uses snake_case: frontend_id, title_slug
+            problem_id = problem_data.get("frontend_id", problem_data.get("questionFrontendId", problem_data.get("questionId")))
+            problem_slug = problem_data.get("title_slug", problem_data.get("titleSlug"))
             print(f"  [{i}/{len(candidates)}] Generating #{problem_id}: {problem_data.get('title')}")
 
             agent = agent_factory()
@@ -184,8 +185,9 @@ class BatchManager:
             futures = {}
 
             for problem_data in candidates:
-                problem_id = problem_data.get("questionFrontendId", problem_data.get("questionId"))
-                problem_slug = problem_data.get("titleSlug")
+                # API uses snake_case: frontend_id, title_slug
+                problem_id = problem_data.get("frontend_id", problem_data.get("questionFrontendId", problem_data.get("questionId")))
+                problem_slug = problem_data.get("title_slug", problem_data.get("titleSlug"))
 
                 future = executor.submit(
                     self._worker_generate,

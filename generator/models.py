@@ -225,6 +225,6 @@ VALID_TRANSITIONS = {
     "fetched": {"generating"},
     "generating": {"validating", "failed"},
     "validating": {"published", "failed"},
-    "failed": {"pending"},
+    "failed": {"pending", "failed"},  # Allow retry without reset (idempotent)
     "published": set(),
 }

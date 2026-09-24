@@ -12,15 +12,6 @@
     "url": "https://leetcode.com/problems/two-sum/"
   },
   {
-    "id": 4,
-    "title": "Median of Two Sorted Arrays",
-    "slug": "median-of-two-sorted-arrays",
-    "difficulty": "Medium",
-    "topics": [],
-    "file": "problems/4-median-of-two-sorted-arrays.html",
-    "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/"
-  },
-  {
     "id": 9,
     "title": "Palindrome Number",
     "slug": "palindrome-number",
@@ -43,5 +34,20 @@
     ],
     "file": "problems/20-valid-parentheses.html",
     "url": "https://leetcode.com/problems/valid-parentheses/"
+  },
+  {
+    "id": 23,
+    "title": "Merge k Sorted Lists",
+    "slug": "merge-k-sorted-lists",
+    "difficulty": "Hard",
+    "topics": [
+      "Linked List",
+      "Divide and Conquer",
+      "Heap (Priority Queue)",
+      "Merge Sort",
+      "Tournament Sort"
+    ],
+    "file": "problems/23-merge-k-sorted-lists.html",
+    "url": "https://leetcode.com/problems/merge-k-sorted-lists/"
   }
 ]
