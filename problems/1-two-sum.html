@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode #1 - Two Sum (Hash Map)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ground: #EDF0EB;
+            --panel: #FAFBF8;
+            --ink: #16201C;
+            --muted: #5A6962;
+            --line: #CAD3CD;
+            --soft: #E1E7E2;
+            --window: #3346C4;
+            --window-dark: #8E9CFF;
+            --read: #6B3FB8;
+            --read-dark: #C09BFF;
+            --success: #1B8A4B;
+            --success-dark: #4ACB7C;
+            --warning: #B97A00;
+            --warning-dark: #F2B53F;
+            --danger: #BF3F2B;
+            --danger-dark: #FF7D66;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --ground: #0E1311;
+                --panel: #151C19;
+                --ink: #E5ECE7;
+                --muted: #92A39A;
+                --line: #2A3631;
+                --soft: #1D2622;
+            }
+        }
+
+        :root[data-theme="dark"] {
+            --ground: #0E1311;
+            --panel: #151C19;
+            --ink: #E5ECE7;
+            --muted: #92A39A;
+            --line: #2A3631;
+            --soft: #1D2622;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 16px;
+            font-family: "IBM Plex Sans", system-ui, sans-serif;
+            background-color: var(--ground);
+            color: var(--ink);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+        }
+
+        .eyebrow {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-family: "Bricolage Grotesque", system-ui, sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 16px 0;
+            color: var(--ink);
+        }
+
+        .description {
+            font-size: 1.05rem;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .moves-section h2,
+        .stage-section h2,
+        .why-fast-section h2 {
+            font-family: "Bricolage Grotesque", system-ui, sans-serif;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 32px 0 16px 0;
+            color: var(--ink);
+        }
+
+        .moves-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .move-card {
+            padding: 12px;
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .move-card.active {
+            background-color: rgba(27, 138, 75, 0.1);
+            border-color: var(--success);
+            border-left: 3px solid var(--success);
+        }
+
+        .move-label {
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+
+        .move-rule {
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .move-explain {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .stage {
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+
+        .array-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+
+        .array-tile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: var(--soft);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            font-family: "JetBrains Mono", monospace;
+            font-weight: 600;
+            color: var(--ink);
+            font-size: 0.9rem;
+        }
+
+        .array-tile.current {
+            background-color: rgba(107, 63, 184, 0.2);
+            border-color: var(--read);
+            box-shadow: 0 0 8px rgba(107, 63, 184, 0.3);
+        }
+
+        .array-tile.found {
+            background-color: rgba(27, 138, 75, 0.2);
+            border-color: var(--success);
+        }
+
+        .hash-map {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            padding: 12px;
+            background-color: var(--ground);
+            border-radius: 4px;
+            border: 1px solid var(--line);
+            white-space: pre;
+            overflow-x: auto;
+        }
+
+        .narration {
+            padding: 12px;
+            background-color: rgba(51, 70, 196, 0.05);
+            border-left: 3px solid var(--window);
+            border-radius: 4px;
+            color: var(--ink);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin: 24px 0;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 8px 16px;
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            color: var(--ink);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--soft);
+            border-color: var(--muted);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:focus {
+            outline: 2px solid var(--window);
+            outline-offset: 2px;
+        }
+
+        .speed-control {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .speed-btn {
+            padding: 6px 10px;
+            font-size: 0.85rem;
+        }
+
+        .speed-btn.active {
+            background-color: var(--window);
+            color: white;
+            border-color: var(--window);
+        }
+
+        input[type="range"] {
+            width: 150px;
+            cursor: pointer;
+        }
+
+        .frame-info {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .code-panel {
+            background-color: var(--ground);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 16px;
+            margin: 24px 0;
+            overflow-x: auto;
+        }
+
+        .code-panel pre {
+            margin: 0;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: var(--ink);
+        }
+
+        .code-line {
+            display: block;
+            padding-left: 40px;
+            position: relative;
+        }
+
+        .code-line::before {
+            content: attr(data-line);
+            position: absolute;
+            left: 8px;
+            width: 28px;
+            text-align: right;
+            color: var(--muted);
+        }
+
+        .code-line.active {
+            background-color: rgba(107, 63, 184, 0.15);
+            border-left: 2px solid var(--read);
+        }
+
+        .section {
+            margin: 32px 0;
+        }
+
+        .why-fast-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .why-card {
+            padding: 16px;
+            background-color: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+        }
+
+        .why-card h3 {
+            margin: 0 0 8px 0;
+            font-family: "Bricolage Grotesque", system-ui, sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .why-card p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .moves-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                gap: 6px;
+            }
+
+            button {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+
+            .array-tile {
+                width: 36px;
+                height: 36px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="eyebrow">LeetCode #1 • Easy • Hash Map</div>
+            <h1>Two Sum: Scan and Store</h1>
+            <p class="description">
+                Find two numbers that add to a target in one pass.
+                Store each number in a hash map as you scan, so when you find a complement, you're done.
+            </p>
+        </header>
+
+        <section class="moves-section">
+            <h2>Algorithm Moves</h2>
+            <div class="moves-cards">
+                <div class="move-card active" id="move-0">
+                    <div class="move-label">Scan</div>
+                    <div class="move-rule">Read one number</div>
+                    <div class="move-explain">Check if its complement exists in the map</div>
+                </div>
+                <div class="move-card" id="move-1">
+                    <div class="move-label">Found</div>
+                    <div class="move-rule">Match found</div>
+                    <div class="move-explain">Both numbers add to target</div>
+                </div>
+                <div class="move-card" id="move-2">
+                    <div class="move-label">Store</div>
+                    <div class="move-rule">Add to map</div>
+                    <div class="move-explain">Remember this number for future matches</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="stage-section">
+            <h2>Animation</h2>
+            <div class="stage">
+                <div>
+                    <strong>Array:</strong>
+                    <div class="array-container" id="array-display"></div>
+                </div>
+
+                <div>
+                    <strong>Hash Map (number → index):</strong>
+                    <div class="hash-map" id="hash-map-display"></div>
+                </div>
+
+                <div>
+                    <strong>Current State:</strong>
+                    <div class="narration" aria-live="polite" id="narration">Starting algorithm...</div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="restart-btn">↻ Restart</button>
+                <button id="prev-btn">← Back</button>
+                <button id="play-btn">▶ Play</button>
+                <button id="next-btn">Next →</button>
+
+                <div class="speed-control">
+                    <button class="speed-btn" data-speed="0.5">0.5×</button>
+                    <button class="speed-btn active" data-speed="1">1×</button>
+                    <button class="speed-btn" data-speed="2">2×</button>
+                </div>
+
+                <input type="range" id="scrubber" min="0" max="0" value="0" aria-label="Frame scrubber">
+                <span class="frame-info"><span id="frame-index">0</span> / <span id="frame-total">0</span></span>
+            </div>
+        </section>
+
+        <section class="code-panel">
+            <pre id="code-display"></pre>
+        </section>
+
+        <section class="why-fast-section">
+            <h2 style="grid-column: 1 / -1;">Why It's Fast</h2>
+            <div class="why-card">
+                <h3>Key Insight</h3>
+                <p>One hash map lookup per element. No nested loops, no searching.</p>
+            </div>
+            <div class="why-card">
+                <h3>Complexity</h3>
+                <p><strong>Time:</strong> O(n) — one pass through the array<br><strong>Space:</strong> O(n) — hash map stores up to n elements</p>
+            </div>
+            <div class="why-card">
+                <h3>vs Brute Force</h3>
+                <p>Brute force: O(n²) nested loops checking every pair. This: O(n) with one pass.</p>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>Try Another Example</h2>
+            <label for="custom-input">Array (comma-separated):</label>
+            <input type="text" id="custom-input" placeholder="e.g., 2,7,11,15" value="2,7,11,15">
+            <label for="custom-target">Target:</label>
+            <input type="number" id="custom-target" placeholder="e.g., 9" value="9">
+            <button id="run-custom-btn">Run Custom</button>
+            <div id="custom-result" style="margin-top: 12px; font-family: 'JetBrains Mono', monospace;"></div>
+        </section>
+    </div>
+
+    <script>
+        const PYTHON_CODE = `def twoSum(nums, target):
+    seen = {}
+    for i, num in enumerate(nums):
+        complement = target - num
+        if complement in seen:
+            return [seen[complement], i]
+        seen[num] = i
+    return []`;
+
+        let speed = 1;
+        let isPlaying = false;
+        let frames = [];
+        let currentFrameIndex = 0;
+
+        class TwoSumSolver {
+            constructor(nums, target) {
+                this.nums = nums;
+                this.target = target;
+                this.frames = [];
+            }
+
+            solve() {
+                const seen = {};
+                const frames = [];
+
+                // Initial frame
+                frames.push({
+                    kind: "start",
+                    msg: `Finding two numbers in [${this.nums.join(", ")}] that sum to ${this.target}`,
+                    current_idx: -1,
+                    seen: {},
+                    answer: null,
+                    current_line: -1,
+                });
+
+                for (let i = 0; i < this.nums.length; i++) {
+                    const num = this.nums[i];
+                    const complement = this.target - num;
+
+                    frames.push({
+                        kind: "read",
+                        msg: `Current: nums[${i}] = ${num}. Need: ${this.target} - ${num} = ${complement}.`,
+                        current_idx: i,
+                        seen: { ...seen },
+                        answer: null,
+                        current_line: 3,
+                    });
+
+                    if (complement in seen) {
+                        const answer = [seen[complement], i];
+                        frames.push({
+                            kind: "found",
+                            msg: `Found! nums[${seen[complement]}] + nums[${i}] = ${seen[complement] ? this.nums[seen[complement]] : '?'} + ${num} = ${this.target}`,
+                            current_idx: i,
+                            seen: { ...seen },
+                            answer: answer,
+                            current_line: 4,
+                        });
+                        return frames;
+                    }
+
+                    frames.push({
+                        kind: "store",
+                        msg: `${complement} not in map. Store: ${num} → ${i}.`,
+                        current_idx: i,
+                        seen: { ...seen, [num]: i },
+                        answer: null,
+                        current_line: 6,
+                    });
+
+                    seen[num] = i;
+                }
+
+                frames.push({
+                    kind: "end",
+                    msg: "No match found.",
+                    current_idx: -1,
+                    seen: seen,
+                    answer: null,
+                    current_line: -1,
+                });
+
+                return frames;
+            }
+        }
+
+        function build(nums, target) {
+            const solver = new TwoSumSolver(nums, target);
+            return solver.solve();
+        }
+
+        function show(frameIdx) {
+            if (frameIdx < 0 || frameIdx >= frames.length) return;
+
+            const frame = frames[frameIdx];
+            currentFrameIndex = frameIdx;
+
+            // Update moves
+            document.querySelectorAll('.move-card').forEach(card => card.classList.remove('active'));
+            if (frame.kind === "scan" || frame.kind === "read") {
+                document.getElementById('move-0')?.classList.add('active');
+            } else if (frame.kind === "found") {
+                document.getElementById('move-1')?.classList.add('active');
+            } else if (frame.kind === "store") {
+                document.getElementById('move-2')?.classList.add('active');
+            }
+
+            // Update array display
+            const arrayDisplay = document.getElementById('array-display');
+            arrayDisplay.innerHTML = '';
+            for (let i = 0; i < this.nums.length; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'array-tile';
+                if (i === frame.current_idx) tile.classList.add('current');
+                if (frame.answer && frame.answer.includes(i)) tile.classList.add('found');
+                tile.textContent = this.nums[i];
+                arrayDisplay.appendChild(tile);
+            }
+
+            // Update hash map display
+            const mapDisplay = document.getElementById('hash-map-display');
+            let mapText = '{';
+            for (const [key, val] of Object.entries(frame.seen)) {
+                mapText += `${key}: ${val}, `;
+            }
+            if (mapText.length > 1) mapText = mapText.slice(0, -2);
+            mapText += '}';
+            mapDisplay.textContent = mapText;
+
+            // Update narration
+            const narration = document.getElementById('narration');
+            narration.textContent = frame.msg;
+
+            // Update code highlighting
+            const codeDisplay = document.getElementById('code-display');
+            const lines = PYTHON_CODE.split('\n');
+            codeDisplay.innerHTML = lines.map((line, idx) => {
+                const active = idx === frame.current_line ? 'active' : '';
+                return `<span class="code-line ${active}" data-line="${idx + 1}">${escapeHtml(line)}</span>`;
+            }).join('\n');
+
+            // Update frame counter
+            document.getElementById('frame-index').textContent = currentFrameIndex + 1;
+            document.getElementById('frame-total').textContent = frames.length;
+
+            // Update scrubber
+            document.getElementById('scrubber').max = frames.length - 1;
+            document.getElementById('scrubber').value = currentFrameIndex;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function animate() {
+            if (!isPlaying || currentFrameIndex >= frames.length - 1) {
+                isPlaying = false;
+                document.getElementById('play-btn').textContent = '▶ Play';
+                return;
+            }
+
+            currentFrameIndex++;
+            show(currentFrameIndex);
+            setTimeout(animate, 1000 / speed);
+        }
+
+        // Initialize with sample: [2, 7, 11, 15], target 9
+        frames = build([2, 7, 11, 15], 9);
+        show(0);
+
+        // Event listeners
+        document.getElementById('play-btn').addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            document.getElementById('play-btn').textContent = isPlaying ? '⏸ Pause' : '▶ Play';
+            if (isPlaying) animate();
+        });
+
+        document.getElementById('restart-btn').addEventListener('click', () => {
+            isPlaying = false;
+            currentFrameIndex = 0;
+            show(0);
+            document.getElementById('play-btn').textContent = '▶ Play';
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            isPlaying = false;
+            document.getElementById('play-btn').textContent = '▶ Play';
+            if (currentFrameIndex < frames.length - 1) {
+                currentFrameIndex++;
+                show(currentFrameIndex);
+            }
+        });
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            isPlaying = false;
+            document.getElementById('play-btn').textContent = '▶ Play';
+            if (currentFrameIndex > 0) {
+                currentFrameIndex--;
+                show(currentFrameIndex);
+            }
+        });
+
+        document.getElementById('scrubber').addEventListener('input', (e) => {
+            isPlaying = false;
+            document.getElementById('play-btn').textContent = '▶ Play';
+            show(parseInt(e.target.value));
+        });
+
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                speed = parseFloat(e.target.dataset.speed);
+            });
+        });
+
+        document.getElementById('run-custom-btn').addEventListener('click', () => {
+            const inputStr = document.getElementById('custom-input').value;
+            const target = parseInt(document.getElementById('custom-target').value);
+
+            const nums = inputStr.split(',').map(s => {
+                const n = parseInt(s.trim());
+                return isNaN(n) ? 0 : n;
+            });
+
+            frames = build(nums, target);
+            currentFrameIndex = 0;
+            isPlaying = false;
+            document.getElementById('play-btn').textContent = '▶ Play';
+            show(0);
+
+            const resultDiv = document.getElementById('custom-result');
+            if (frames.length > 0) {
+                const lastFrame = frames[frames.length - 1];
+                if (lastFrame.answer) {
+                    resultDiv.textContent = `Answer: indices [${lastFrame.answer.join(', ')}] → values [${lastFrame.answer.map(i => nums[i]).join(', ')}] = ${target}`;
+                } else {
+                    resultDiv.textContent = 'No match found.';
+                }
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('play-btn').click();
+            } else if (e.key === 'ArrowRight') {
+                document.getElementById('next-btn').click();
+            } else if (e.key === 'ArrowLeft') {
+                document.getElementById('prev-btn').click();
+            } else if (e.key === 'r' || e.key === 'R') {
+                document.getElementById('restart-btn').click();
+            }
+        });
+
+        // Initial assertions (console checks)
+        console.assert(build([2, 7, 11, 15], 9).some(f => f.answer && f.answer[0] === 0 && f.answer[1] === 1), "Test 1 failed");
+        console.assert(build([3, 2, 4], 6).some(f => f.answer && f.answer[0] === 1 && f.answer[1] === 2), "Test 2 failed");
+        console.assert(build([3, 3], 6).some(f => f.answer && f.answer[0] === 0 && f.answer[1] === 1), "Test 3 failed");
+    </script>
+</body>
+</html>
