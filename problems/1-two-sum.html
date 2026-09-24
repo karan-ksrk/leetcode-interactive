@@ -480,6 +480,7 @@
         let isPlaying = false;
         let frames = [];
         let currentFrameIndex = 0;
+        let currentNums = [];  // Track current array for display
 
         class TwoSumSolver {
             constructor(nums, target) {
@@ -577,12 +578,12 @@
             // Update array display
             const arrayDisplay = document.getElementById('array-display');
             arrayDisplay.innerHTML = '';
-            for (let i = 0; i < this.nums.length; i++) {
+            for (let i = 0; i < currentNums.length; i++) {
                 const tile = document.createElement('div');
                 tile.className = 'array-tile';
                 if (i === frame.current_idx) tile.classList.add('current');
                 if (frame.answer && frame.answer.includes(i)) tile.classList.add('found');
-                tile.textContent = this.nums[i];
+                tile.textContent = currentNums[i];
                 arrayDisplay.appendChild(tile);
             }
 
@@ -636,7 +637,8 @@
         }
 
         // Initialize with sample: [2, 7, 11, 15], target 9
-        frames = build([2, 7, 11, 15], 9);
+        currentNums = [2, 7, 11, 15];
+        frames = build(currentNums, 9);
         show(0);
 
         // Event listeners
@@ -694,6 +696,7 @@
                 return isNaN(n) ? 0 : n;
             });
 
+            currentNums = nums;
             frames = build(nums, target);
             currentFrameIndex = 0;
             isPlaying = false;
