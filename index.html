@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Interactive — Algorithm Visualizations</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>LeetCode Interactive</h1>
+            <p class="subtitle">Animated, step-by-step algorithm explanations</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="filters-section">
+            <div class="search-group">
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Search by title or problem #..."
+                    aria-label="Search problems"
+                >
+            </div>
+
+            <div class="filter-group">
+                <label for="difficulty-filter">Difficulty:</label>
+                <select id="difficulty-filter" aria-label="Filter by difficulty">
+                    <option value="">All</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="topic-filter">Topic:</label>
+                <select id="topic-filter" aria-label="Filter by topic">
+                    <option value="">All Topics</option>
+                </select>
+            </div>
+
+            <div class="info-bar">
+                <span id="problem-count" class="count-badge">0 problems</span>
+            </div>
+        </section>
+
+        <section id="problem-grid" class="problem-grid">
+            <!-- Populated by JavaScript -->
+        </section>
+
+        <section id="empty-state" class="empty-state" hidden>
+            <p>No problems found.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>LeetCode Interactive — Open source, GitHub Pages hosted</p>
+        <p><a href="https://github.com" target="_blank">View on GitHub</a></p>
+    </footer>
+
+    <script src="./app.js"></script>
+</body>
+</html>
