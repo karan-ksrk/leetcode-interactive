@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4. Median of Two Sorted Arrays — Interactive Explanation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4ee;
+    --card: #ffffff;
+    --ink: #1a1a20;
+    --muted: #686874;
+    --line: #e2dfd6;
+    --swap: #7c5cff;
+    --cut: #2f7cf6;
+    --check: #d9960b;
+    --shift: #e5484d;
+    --answer: #1f9d63;
+    --left-bg: #dcebff;
+    --left-ink: #0f4aa8;
+    --right-bg: #fde8d4;
+    --right-ink: #9a4a06;
+    --tile-bg: #f0eee8;
+    --code-bg: #faf9f5;
+    --hl: #fff3c4;
+    --focus: #2f7cf6;
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #111216;
+      --card: #1a1c22;
+      --ink: #ececf1;
+      --muted: #9a9aa8;
+      --line: #2c2f38;
+      --swap: #9d85ff;
+      --cut: #5e9bff;
+      --check: #f2b534;
+      --shift: #ff6b70;
+      --answer: #3ccf8e;
+      --left-bg: #17304f;
+      --left-ink: #a9ccff;
+      --right-bg: #43290f;
+      --right-ink: #ffc58f;
+      --tile-bg: #24262e;
+      --code-bg: #15161b;
+      --hl: #3a3417;
+      --focus: #7fb0ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.55 "IBM Plex Sans", system-ui, sans-serif;
+  }
+  main { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", system-ui, sans-serif; line-height: 1.15; margin: 0 0 .5em; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; }
+  h2 { font-size: 1.25rem; font-weight: 700; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px;
+  }
+  header.card { margin-bottom: 18px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .badge {
+    font-size: .8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--tile-bg);
+  }
+  .badge.hard { color: #fff; background: var(--shift); border-color: transparent; }
+  .mnemonic {
+    font-family: "Bricolage Grotesque", sans-serif; font-weight: 600; font-size: 1.1rem;
+    border-left: 4px solid var(--cut); padding: 4px 12px; margin: 12px 0;
+  }
+  header p { margin: .4em 0; color: var(--ink); }
+  header .muted, .muted { color: var(--muted); }
+
+  .moves { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin-bottom: 18px; }
+  .move {
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 12px 14px; border-top: 5px solid var(--c); transition: transform .2s, box-shadow .2s;
+  }
+  .move.active { box-shadow: 0 0 0 2px var(--c); transform: translateY(-2px); }
+  .move .tag {
+    display: inline-block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--c);
+  }
+  .move h3 { font-size: 1rem; margin: 4px 0; }
+  .move p { margin: 0; font-size: .88rem; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
+
+  .stage { display: flex; flex-direction: column; gap: 14px; }
+  .row-label { font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .row { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; min-height: 64px; }
+  .tile {
+    position: relative; width: 44px; height: 44px; border-radius: 9px;
+    display: grid; place-items: center; font-family: "JetBrains Mono", monospace; font-weight: 600;
+    background: var(--tile-bg); border: 2px solid transparent;
+    transition: background .3s, color .3s, border-color .3s, transform .3s;
+  }
+  .tile.left { background: var(--left-bg); color: var(--left-ink); }
+  .tile.right { background: var(--right-bg); color: var(--right-ink); }
+  .tile.edge { border-color: var(--check); transform: translateY(-3px); }
+  .tile .lbl {
+    position: absolute; top: 48px; left: 50%; transform: translateX(-50%);
+    font-size: .64rem; font-weight: 600; color: var(--check); white-space: nowrap;
+  }
+  .tile.empty { width: auto; padding: 0 12px; color: var(--muted); font-weight: 400; font-size: .85rem; }
+  .row.has-edges { margin-bottom: 16px; }
+  .cut {
+    width: 4px; height: 52px; margin: -4px 2px 0; border-radius: 2px; background: var(--cut);
+    position: relative;
+  }
+  .cut::after {
+    content: attr(data-label); position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    font: 600 .7rem "JetBrains Mono", monospace; color: var(--cut); white-space: nowrap;
+  }
+  .row.cut-row { padding-top: 16px; }
+
+  .rail { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+  .rail .slot {
+    min-width: 28px; height: 26px; border-radius: 6px; display: grid; place-items: center;
+    font: 600 .75rem "JetBrains Mono", monospace; color: var(--muted);
+    border: 1px dashed var(--line);
+  }
+  .rail .slot.in { background: color-mix(in srgb, var(--cut) 15%, transparent); color: var(--ink); border-style: solid; border-color: color-mix(in srgb, var(--cut) 40%, transparent); }
+  .rail .slot.cur { background: var(--cut); color: #fff; border-color: var(--cut); }
+  .rail .cap { font-size: .78rem; color: var(--muted); margin-right: 6px; }
+
+  .checks { display: grid; gap: 6px; }
+  .chk {
+    font-family: "JetBrains Mono", monospace; font-size: .88rem; padding: 6px 10px; border-radius: 8px;
+    background: var(--tile-bg); border-left: 4px solid var(--line);
+  }
+  .chk.ok { border-left-color: var(--answer); }
+  .chk.bad { border-left-color: var(--shift); }
+  .answer-box {
+    font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 1.4rem;
+    color: var(--answer); padding: 8px 12px; border: 2px solid var(--answer); border-radius: 10px; text-align: center;
+  }
+  .merged .tile { width: 36px; height: 36px; font-size: .85rem; }
+  .merged .tile.mid { border-color: var(--answer); }
+
+  .narration {
+    min-height: 3.2em; padding: 10px 14px; border-radius: 10px;
+    background: var(--tile-bg); font-weight: 500;
+  }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button {
+    font: 600 .9rem "IBM Plex Sans", sans-serif; color: var(--ink);
+    background: var(--tile-bg); border: 1px solid var(--line); border-radius: 8px;
+    padding: 7px 12px; cursor: pointer;
+  }
+  button:hover { border-color: var(--cut); }
+  button.primary { background: var(--cut); color: #fff; border-color: var(--cut); min-width: 84px; }
+  button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+  .speed { display: flex; gap: 4px; margin-left: auto; }
+  .scrub { display: flex; gap: 10px; align-items: center; width: 100%; }
+  .scrub input { flex: 1; accent-color: var(--cut); }
+  .scrub span { font: .8rem "JetBrains Mono", monospace; color: var(--muted); white-space: nowrap; }
+  .kbd { font-size: .78rem; color: var(--muted); }
+
+  .side { display: flex; flex-direction: column; gap: 18px; }
+  .state dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: .92rem; }
+  .state dt { color: var(--muted); }
+  .state dd { margin: 0; font-family: "JetBrains Mono", monospace; font-weight: 600; }
+  .bar { height: 8px; background: var(--tile-bg); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+  .bar > div { height: 100%; background: var(--cut); transition: width .3s; }
+
+  pre.code {
+    margin: 0; background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 8px 0; overflow-x: auto; font: .8rem/1.6 "JetBrains Mono", monospace;
+  }
+  .ln { display: block; padding: 0 12px 0 0; white-space: pre; border-left: 3px solid transparent; }
+  .ln::before {
+    content: attr(data-line); display: inline-block; width: 2.4em; text-align: right; margin-right: 12px;
+    color: var(--muted); opacity: .7;
+  }
+  .ln.hl { background: var(--hl); border-left-color: var(--check); }
+
+  section.card { margin-top: 18px; }
+  .why ul { margin: .4em 0; padding-left: 1.2em; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: 8px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+
+  .try .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .try form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; align-items: end; }
+  @media (max-width: 560px) { .try form { grid-template-columns: 1fr; } }
+  .try label { font-size: .82rem; font-weight: 600; color: var(--muted); display: block; margin-bottom: 3px; }
+  .try input[type=text] {
+    width: 100%; font: .9rem "JetBrains Mono", monospace; padding: 8px 10px;
+    border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+  }
+  .error { color: var(--shift); font-size: .88rem; min-height: 1.3em; margin-top: 8px; }
+
+  @media (max-width: 440px) {
+    main { padding: 16px 10px 48px; }
+    .tile { width: 36px; height: 36px; font-size: .85rem; }
+    .tile .lbl { top: 40px; }
+    .cut { height: 44px; }
+    .speed { margin-left: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .tile.edge, .move.active { transform: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="card">
+    <div class="badges">
+      <span class="badge">LeetCode #4</span>
+      <span class="badge hard">Hard</span>
+      <span class="badge">Binary Search on Partition</span>
+    </div>
+    <h1>Median of Two Sorted Arrays</h1>
+    <div class="mnemonic">“Cut the short one, cross-check the edges.”</div>
+    <p>You get two sorted arrays, <code>nums1</code> (length m) and <code>nums2</code> (length n). Return the median of all m + n values combined, in <strong>O(log(m + n))</strong> time.</p>
+    <p class="muted">Key idea: you don't need to merge. A median splits the combined values into a left half and a right half where every left value is ≤ every right value. Pick how many values the shorter array puts on the left. That choice forces how many the longer array gives, so you binary search that one number.</p>
+  </header>
+
+  <div class="moves" role="list">
+    <div class="move" role="listitem" data-move="swap" style="--c: var(--swap)">
+      <span class="tag">1 · Swap</span>
+      <h3>Search the shorter array</h3>
+      <p>If A is longer than B, swap them. Fewer cut positions, and j never goes out of range.</p>
+    </div>
+    <div class="move" role="listitem" data-move="cut" style="--c: var(--cut)">
+      <span class="tag">2 · Cut</span>
+      <h3>i from A, j = half − i from B</h3>
+      <p>Set i to the middle of the search range. B has to fill the rest of the left half.</p>
+    </div>
+    <div class="move" role="listitem" data-move="check" style="--c: var(--check)">
+      <span class="tag">3 · Cross-check</span>
+      <h3>Aleft ≤ Bright and Bleft ≤ Aright</h3>
+      <p>Each side is already sorted, so only the four values next to the cuts need comparing.</p>
+    </div>
+    <div class="move" role="listitem" data-move="shift" style="--c: var(--shift)">
+      <span class="tag">4 · Shift</span>
+      <h3>Move toward the violation</h3>
+      <p>If Aleft is too big, move the cut left (hi = i − 1). Otherwise move it right (lo = i + 1).</p>
+    </div>
+    <div class="move" role="listitem" data-move="answer" style="--c: var(--answer)">
+      <span class="tag">5 · Answer</span>
+      <h3>Read the median off the edges</h3>
+      <p>If the total is odd, take max(lefts). If it's even, average max(lefts) and min(rights).</p>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card stage" aria-label="Algorithm visualization">
+      <div>
+        <div class="row-label" id="labelA">A</div>
+        <div class="row" id="rowA"></div>
+      </div>
+      <div>
+        <div class="row-label">Cut positions i in A (shaded = still possible)</div>
+        <div class="rail" id="rail"></div>
+      </div>
+      <div>
+        <div class="row-label" id="labelB">B</div>
+        <div class="row" id="rowB"></div>
+      </div>
+      <div class="checks" id="checks"></div>
+      <div id="mergedWrap" hidden>
+        <div class="row-label">Merged, only to verify (the algorithm never builds this)</div>
+        <div class="row merged" id="merged"></div>
+      </div>
+      <div class="narration" id="narration" aria-live="polite"></div>
+      <div class="controls">
+        <button id="btnRestart" title="Restart (R)">⟲ Restart</button>
+        <button id="btnBack" title="Back (←)">◀ Back</button>
+        <button id="btnPlay" class="primary" title="Play/Pause (Space)">▶ Play</button>
+        <button id="btnNext" title="Next (→)">Next ▶</button>
+        <div class="speed" role="group" aria-label="Playback speed">
+          <button data-speed="0.5" aria-pressed="false">0.5×</button>
+          <button data-speed="1" aria-pressed="true">1×</button>
+          <button data-speed="2" aria-pressed="false">2×</button>
+        </div>
+        <div class="scrub">
+          <input type="range" id="scrub" min="0" max="0" value="0" aria-label="Frame">
+          <span id="frameNum">1 / 1</span>
+        </div>
+        <div class="kbd">Keyboard: Space = play/pause · ← → = step · R = restart</div>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card state">
+        <h2>State</h2>
+        <dl>
+          <dt>m, n</dt><dd id="sMN">–</dd>
+          <dt>half</dt><dd id="sHalf">–</dd>
+          <dt>range [lo, hi]</dt><dd id="sRange">–</dd>
+          <dt>i, j</dt><dd id="sIJ">–</dd>
+          <dt>Aleft / Aright</dt><dd id="sA">–</dd>
+          <dt>Bleft / Bright</dt><dd id="sB">–</dd>
+          <dt>iterations</dt><dd id="sOps">0</dd>
+          <dt>median</dt><dd id="sAns">–</dd>
+        </dl>
+        <div class="bar" aria-hidden="true"><div id="rangeBar" style="width:100%"></div></div>
+        <div class="muted" style="font-size:.8rem;margin-top:4px" id="rangeCap">Search range remaining</div>
+      </div>
+      <div class="card">
+        <h2>Python</h2>
+<pre class="code" id="code"><span class="ln" data-line="1">def findMedianSortedArrays(nums1, nums2):</span><span class="ln" data-line="2">    A, B = nums1, nums2</span><span class="ln" data-line="3">    if len(A) &gt; len(B):</span><span class="ln" data-line="4">        A, B = B, A</span><span class="ln" data-line="5">    m, n = len(A), len(B)</span><span class="ln" data-line="6">    half = (m + n + 1) // 2</span><span class="ln" data-line="7">    lo, hi = 0, m</span><span class="ln" data-line="8">    while lo &lt;= hi:</span><span class="ln" data-line="9">        i = (lo + hi) // 2</span><span class="ln" data-line="10">        j = half - i</span><span class="ln" data-line="11">        Aleft  = A[i-1] if i &gt; 0 else float('-inf')</span><span class="ln" data-line="12">        Aright = A[i]   if i &lt; m else float('inf')</span><span class="ln" data-line="13">        Bleft  = B[j-1] if j &gt; 0 else float('-inf')</span><span class="ln" data-line="14">        Bright = B[j]   if j &lt; n else float('inf')</span><span class="ln" data-line="15">        if Aleft &lt;= Bright and Bleft &lt;= Aright:</span><span class="ln" data-line="16">            if (m + n) % 2:</span><span class="ln" data-line="17">                return max(Aleft, Bleft)</span><span class="ln" data-line="18">            return (max(Aleft, Bleft) + min(Aright, Bright)) / 2</span><span class="ln" data-line="19">        elif Aleft &gt; Bright:</span><span class="ln" data-line="20">            hi = i - 1</span><span class="ln" data-line="21">        else:</span><span class="ln" data-line="22">            lo = i + 1</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <section class="card why">
+    <h2>Why it's fast</h2>
+    <ul>
+      <li><strong>One number decides everything.</strong> The left half always has <code>half = (m+n+1)//2</code> values. Once you pick i, you know j. The search space is just the m + 1 possible values of i.</li>
+      <li><strong>The check is monotone.</strong> If <code>Aleft &gt; Bright</code>, any larger i makes Aleft bigger, so the answer is to the left. If <code>Bleft &gt; Aright</code>, the answer is to the right. That's what makes binary search valid here.</li>
+      <li><strong>Sorted order does most of the work.</strong> Inside each array, left ≤ right already holds. Only the two cross comparisons can fail.</li>
+      <li><strong>±∞ sentinels</strong> handle cuts at an array's very start or end, so there are no special cases.</li>
+    </ul>
+    <table>
+      <thead><tr><th>Approach</th><th>Time</th><th>Space</th></tr></thead>
+      <tbody>
+        <tr><td>Merge both arrays, then pick the middle</td><td class="mono">O(m + n)</td><td class="mono">O(m + n)</td></tr>
+        <tr><td>Two-pointer walk to the middle</td><td class="mono">O(m + n)</td><td class="mono">O(1)</td></tr>
+        <tr><td><strong>Binary search on the partition</strong></td><td class="mono"><strong>O(log min(m, n))</strong></td><td class="mono"><strong>O(1)</strong></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card try">
+    <h2>Try another example</h2>
+    <div class="presets" id="presets"></div>
+    <form id="customForm" novalidate>
+      <div>
+        <label for="in1">nums1 (sorted, comma-separated, may be empty)</label>
+        <input type="text" id="in1" value="1, 3, 8, 9, 15" autocomplete="off">
+      </div>
+      <div>
+        <label for="in2">nums2 (sorted, comma-separated, may be empty)</label>
+        <input type="text" id="in2" value="7, 11, 18, 19, 21, 25" autocomplete="off">
+      </div>
+      <button type="submit" class="primary">Run</button>
+    </form>
+    <div class="error" id="error" role="alert"></div>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const PRESETS = [
+    { name: "[1,3] · [2]", a: [1, 3], b: [2] },
+    { name: "[1,2] · [3,4]", a: [1, 2], b: [3, 4] },
+    { name: "5 + 6 values", a: [1, 3, 8, 9, 15], b: [7, 11, 18, 19, 21, 25] },
+    { name: "Longer first (swap)", a: [2, 4, 6, 8, 10, 12], b: [1, 5] },
+    { name: "[] · [1]", a: [], b: [1] },
+    { name: "All zeros", a: [0, 0], b: [0, 0] },
+    { name: "Disjoint", a: [10, 20, 30], b: [1, 2, 3, 4] },
+  ];
+
+  const fmt = v => v === -Infinity ? "−∞" : v === Infinity ? "+∞" : (v === null || v === undefined) ? "–" : String(v);
+  const fmtAns = v => Number.isInteger(v) ? v.toFixed(1) : String(v);
+
+  // ---------- Algorithm: record a frame snapshot at each step ----------
+  function build(nums1, nums2) {
+    const F = [];
+    let A = nums1.slice(), B = nums2.slice(), swapped = false;
+    let m = A.length, n = B.length;
+    let half = null, lo = null, hi = null, i = null, j = null;
+    let AL = null, AR = null, BL = null, BR = null, ok1 = null, ok2 = null, ans = null, ops = 0;
+
+    const snap = (kind, move, lines, msg) => F.push({
+      kind, move, lines, msg,
+      A: A.slice(), B: B.slice(), m, n, half, lo, hi, i, j,
+      AL, AR, BL, BR, ok1, ok2, ans, ops, swapped,
+      orig1: nums1.slice(), orig2: nums2.slice()
+    });
+
+    const total = nums1.length + nums2.length;
+    snap("start", "swap", [1, 2],
+      `Merging would take O(m+n). Instead, find a cut that puts ${Math.floor((total + 1) / 2)} of the ${total} values on the left, with every left value ≤ every right value.`);
+
+    if (A.length > B.length) {
+      [A, B] = [B, A];
+      swapped = true;
+      m = A.length; n = B.length;
+      snap("swap", "swap", [3, 4],
+        `nums1 has ${nums1.length} values and nums2 has ${nums2.length}. Swap them so A is the shorter array. The binary search then covers only ${m + 1} cut positions.`);
+    } else {
+      snap("swap", "swap", [3],
+        `A has ${m} value${m === 1 ? "" : "s"}, which is no more than B's ${n}. No swap. We binary search the cut positions in A.`);
+    }
+
+    half = Math.floor((m + n + 1) / 2);
+    lo = 0; hi = m;
+    snap("setup", "cut", [5, 6, 7],
+      `The left half needs half = (${m}+${n}+1)//2 = ${half} values. The cut i in A can be anywhere from 0 to ${m}.`);
+
+    while (lo <= hi) {
+      ops++;
+      i = Math.floor((lo + hi) / 2);
+      j = half - i;
+      AL = AR = BL = BR = null; ok1 = ok2 = null;
+      snap("cut", "cut", [8, 9, 10],
+        `Try the middle: i = (${lo}+${hi})//2 = ${i}. A puts ${i} value${i === 1 ? "" : "s"} on the left, so B must put j = ${half} − ${i} = ${j}.`);
+
+      AL = i > 0 ? A[i - 1] : -Infinity;
+      AR = i < m ? A[i] : Infinity;
+      BL = j > 0 ? B[j - 1] : -Infinity;
+      BR = j < n ? B[j] : Infinity;
+      snap("edges", "cut", [11, 12, 13, 14],
+        `Values on each side of the cuts: Aleft = ${fmt(AL)}, Aright = ${fmt(AR)}, Bleft = ${fmt(BL)}, Bright = ${fmt(BR)}.`);
+
+      ok1 = AL <= BR; ok2 = BL <= AR;
+      let msg;
+      if (ok1 && ok2) msg = `Cross-check: Aleft ${fmt(AL)} ≤ Bright ${fmt(BR)} ✓ and Bleft ${fmt(BL)} ≤ Aright ${fmt(AR)} ✓. This cut works.`;
+      else if (!ok1) msg = `Cross-check fails: Aleft ${fmt(AL)} > Bright ${fmt(BR)} ✗. A put too many values on the left.`;
+      else msg = `Cross-check fails: Bleft ${fmt(BL)} > Aright ${fmt(AR)} ✗. A put too few values on the left.`;
+      snap("check", "check", ok1 && ok2 ? [15] : [15, 19], msg);
+
+      if (ok1 && ok2) {
+        const maxL = Math.max(AL, BL), minR = Math.min(AR, BR);
+        if ((m + n) % 2) {
+          ans = maxL;
+          snap("done", "answer", [16, 17],
+            `The total, ${m + n}, is odd, so the median is the largest left value: max(${fmt(AL)}, ${fmt(BL)}) = ${fmtAns(ans)}.`);
+        } else {
+          ans = (maxL + minR) / 2;
+          snap("done", "answer", [16, 18],
+            `The total, ${m + n}, is even, so the median is (max(${fmt(AL)}, ${fmt(BL)}) + min(${fmt(AR)}, ${fmt(BR)})) / 2 = (${maxL} + ${minR}) / 2 = ${fmtAns(ans)}.`);
+        }
+        return F;
+      } else if (AL > BR) {
+        hi = i - 1;
+        snap("shift", "shift", [19, 20],
+          `Move the cut in A left: hi = i − 1 = ${hi}. The search range is now [${lo}, ${hi}].`);
+      } else {
+        lo = i + 1;
+        snap("shift", "shift", [21, 22],
+          `Move the cut in A right: lo = i + 1 = ${lo}. The search range is now [${lo}, ${hi}].`);
+      }
+    }
+    return F; // unreachable for valid sorted input
+  }
+
+  function bruteMedian(a, b) {
+    const all = a.concat(b).sort((x, y) => x - y);
+    const k = all.length;
+    return k % 2 ? all[(k - 1) / 2] : (all[k / 2 - 1] + all[k / 2]) / 2;
+  }
+
+  // Self-checks against a brute-force merge
+  for (const p of PRESETS) {
+    const fr = build(p.a, p.b);
+    const last = fr[fr.length - 1];
+    console.assert(last.kind === "done", "Preset did not finish:", p.name);
+    console.assert(last.ans === bruteMedian(p.a, p.b), "Wrong median for", p.name, last.ans, bruteMedian(p.a, p.b));
+  }
+  console.assert(build([1, 3], [2]).at(-1).ans === 2, "LC example 1");
+  console.assert(build([1, 2], [3, 4]).at(-1).ans === 2.5, "LC example 2");
+
+  // ---------- Rendering ----------
+  const $ = id => document.getElementById(id);
+  const rowA = $("rowA"), rowB = $("rowB"), rail = $("rail"), checks = $("checks");
+  const narration = $("narration"), scrub = $("scrub"), frameNum = $("frameNum");
+  const btnPlay = $("btnPlay");
+  const codeLines = [...document.querySelectorAll("#code .ln")];
+  const moveCards = [...document.querySelectorAll(".move")];
+
+  let frames = [], cur = 0, playing = false, timer = null, speed = 1;
+
+  function renderRow(el, arr, cut, name, showEdges) {
+    el.innerHTML = "";
+    el.classList.toggle("cut-row", cut !== null);
+    el.classList.toggle("has-edges", !!showEdges);
+    const addCut = () => {
+      const c = document.createElement("div");
+      c.className = "cut";
+      c.dataset.label = name === "A" ? `i=${cut}` : `j=${cut}`;
+      c.setAttribute("aria-hidden", "true");
+      el.appendChild(c);
+    };
+    if (arr.length === 0) {
+      if (cut !== null) addCut();
+      const t = document.createElement("div");
+      t.className = "tile empty";
+      t.textContent = "(empty)";
+      el.appendChild(t);
+      return;
+    }
+    arr.forEach((v, k) => {
+      if (cut === k) addCut();
+      const t = document.createElement("div");
+      t.className = "tile";
+      t.textContent = v;
+      if (cut !== null) t.classList.add(k < cut ? "left" : "right");
+      if (showEdges && (k === cut - 1 || k === cut)) {
+        t.classList.add("edge");
+        const l = document.createElement("span");
+        l.className = "lbl";
+        l.textContent = name + (k < cut ? "left" : "right");
+        t.appendChild(l);
+      }
+      t.setAttribute("aria-label", `${name}[${k}] = ${v}${cut !== null ? (k < cut ? ", left half" : ", right half") : ""}`);
+      el.appendChild(t);
+    });
+    if (cut === arr.length) addCut();
+  }
+
+  function show(idx) {
+    cur = Math.max(0, Math.min(idx, frames.length - 1));
+    const f = frames[cur];
+
+    narration.textContent = f.msg;
+    moveCards.forEach(el => el.classList.toggle("active", el.dataset.move === f.move));
+    codeLines.forEach(el => el.classList.toggle("hl", f.lines.includes(+el.dataset.line)));
+
+    const aIsNums2 = f.swapped;
+    $("labelA").textContent = `A = ${aIsNums2 ? "nums2 (swapped)" : "nums1"} · length ${f.A.length}`;
+    $("labelB").textContent = `B = ${aIsNums2 ? "nums1 (swapped)" : "nums2"} · length ${f.B.length}`;
+
+    const edges = f.AL !== null;
+    renderRow(rowA, f.A, f.i, "A", edges);
+    renderRow(rowB, f.B, f.j, "B", edges);
+
+    // Cut rail
+    rail.innerHTML = "";
+    if (f.lo !== null) {
+      const cap = document.createElement("span");
+      cap.className = "cap";
+      cap.textContent = "i ∈";
+      rail.appendChild(cap);
+      for (let k = 0; k <= f.m; k++) {
+        const s = document.createElement("div");
+        s.className = "slot";
+        if (k >= f.lo && k <= f.hi) s.classList.add("in");
+        if (k === f.i && f.kind !== "shift") s.classList.add("cur");
+        s.textContent = k;
+        rail.appendChild(s);
+      }
+    } else {
+      rail.innerHTML = '<span class="muted" style="font-size:.85rem">Available after the setup step</span>';
+    }
+
+    // Cross-checks
+    checks.innerHTML = "";
+    if (f.ok1 !== null) {
+      const c1 = document.createElement("div");
+      c1.className = "chk " + (f.ok1 ? "ok" : "bad");
+      c1.textContent = `Aleft ≤ Bright :  ${fmt(f.AL)} ≤ ${fmt(f.BR)}  ${f.ok1 ? "✓" : "✗"}`;
+      const c2 = document.createElement("div");
+      c2.className = "chk " + (f.ok2 ? "ok" : "bad");
+      c2.textContent = `Bleft ≤ Aright :  ${fmt(f.BL)} ≤ ${fmt(f.AR)}  ${f.ok2 ? "✓" : "✗"}`;
+      checks.append(c1, c2);
+    }
+    if (f.ans !== null) {
+      const a = document.createElement("div");
+      a.className = "answer-box";
+      a.textContent = `Median = ${fmtAns(f.ans)}`;
+      checks.appendChild(a);
+    }
+
+    // Merged verification strip (done frame only)
+    const mw = $("mergedWrap");
+    if (f.kind === "done") {
+      mw.hidden = false;
+      const all = f.orig1.concat(f.orig2).sort((x, y) => x - y);
+      const k = all.length;
+      const mids = k % 2 ? [(k - 1) / 2] : [k / 2 - 1, k / 2];
+      const mg = $("merged");
+      mg.innerHTML = "";
+      all.forEach((v, idx2) => {
+        const t = document.createElement("div");
+        t.className = "tile " + (idx2 < f.half ? "left" : "right") + (mids.includes(idx2) ? " mid" : "");
+        t.textContent = v;
+        mg.appendChild(t);
+      });
+    } else mw.hidden = true;
+
+    // State panel
+    $("sMN").textContent = `${f.m}, ${f.n}`;
+    $("sHalf").textContent = f.half === null ? "–" : f.half;
+    $("sRange").textContent = f.lo === null ? "–" : (f.lo <= f.hi ? `[${f.lo}, ${f.hi}]` : "empty");
+    $("sIJ").textContent = f.i === null ? "–" : `${f.i}, ${f.j}`;
+    $("sA").textContent = f.AL === null ? "–" : `${fmt(f.AL)} / ${fmt(f.AR)}`;
+    $("sB").textContent = f.BL === null ? "–" : `${fmt(f.BL)} / ${fmt(f.BR)}`;
+    $("sOps").textContent = f.ops;
+    $("sAns").textContent = f.ans === null ? "–" : fmtAns(f.ans);
+    if (f.lo !== null) {
+      const width = Math.max(0, f.hi - f.lo + 1);
+      const pct = f.kind === "done" ? 100 / (f.m + 1) : (width / (f.m + 1)) * 100;
+      $("rangeBar").style.width = pct + "%";
+      $("rangeCap").textContent = f.kind === "done"
+        ? `Found after ${f.ops} iteration${f.ops === 1 ? "" : "s"} (at most ⌈log₂(${f.m + 1})⌉ = ${Math.ceil(Math.log2(f.m + 1)) || 1})`
+        : `${width} of ${f.m + 1} cut positions still possible`;
+    } else {
+      $("rangeBar").style.width = "100%";
+      $("rangeCap").textContent = "Search range remaining";
+    }
+
+    scrub.value = cur;
+    frameNum.textContent = `${cur + 1} / ${frames.length}`;
+  }
+
+  // ---------- Controls ----------
+  function setPlaying(p) {
+    playing = p;
+    btnPlay.textContent = p ? "❚❚ Pause" : "▶ Play";
+    btnPlay.setAttribute("aria-label", p ? "Pause" : "Play");
+    clearTimeout(timer);
+    if (p) tick();
+  }
+  function tick() {
+    if (!playing) return;
+    if (cur >= frames.length - 1) { setPlaying(false); return; }
+    timer = setTimeout(() => { show(cur + 1); tick(); }, 1400 / speed);
+  }
+  function load(a, b) {
+    setPlaying(false);
+    frames = build(a, b);
+    scrub.max = frames.length - 1;
+    show(0);
+  }
+
+  btnPlay.addEventListener("click", () => {
+    if (!playing && cur >= frames.length - 1) show(0);
+    setPlaying(!playing);
+  });
+  $("btnNext").addEventListener("click", () => { setPlaying(false); show(cur + 1); });
+  $("btnBack").addEventListener("click", () => { setPlaying(false); show(cur - 1); });
+  $("btnRestart").addEventListener("click", () => { setPlaying(false); show(0); });
+  scrub.addEventListener("input", () => { setPlaying(false); show(+scrub.value); });
+  document.querySelectorAll("[data-speed]").forEach(b => b.addEventListener("click", () => {
+    speed = +b.dataset.speed;
+    document.querySelectorAll("[data-speed]").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
+    if (playing) { clearTimeout(timer); tick(); }
+  }));
+
+  document.addEventListener("keydown", e => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea") return;
+    if (e.key === " " || e.code === "Space") {
+      if (tag === "button") return; // let buttons handle their own activation
+      e.preventDefault(); btnPlay.click();
+    } else if (e.key === "ArrowRight") { e.preventDefault(); setPlaying(false); show(cur + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); setPlaying(false); show(cur - 1); }
+    else if (e.key === "r" || e.key === "R") { setPlaying(false); show(0); }
+  });
+
+  // ---------- Presets & custom input ----------
+  const presetsEl = $("presets");
+  PRESETS.forEach(p => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = p.name;
+    b.addEventListener("click", () => {
+      $("in1").value = p.a.join(", ");
+      $("in2").value = p.b.join(", ");
+      $("error").textContent = "";
+      load(p.a, p.b);
+    });
+    presetsEl.appendChild(b);
+  });
+
+  function parse(str, name) {
+    const s = str.trim().replace(/^\[/, "").replace(/\]$/, "").trim();
+    if (s === "") return [];
+    const parts = s.split(/[\s,]+/).filter(Boolean);
+    const out = [];
+    for (const p of parts) {
+      if (!/^-?\d+$/.test(p)) throw new Error(`${name}: “${p}” is not an integer.`);
+      const v = Number(p);
+      if (Math.abs(v) > 1e6) throw new Error(`${name}: values must be between −10⁶ and 10⁶.`);
+      out.push(v);
+    }
+    if (out.length > 12) throw new Error(`${name}: at most 12 values, to keep the display readable.`);
+    for (let k = 1; k < out.length; k++) {
+      if (out[k] < out[k - 1]) throw new Error(`${name} must be sorted in non-decreasing order (${out[k - 1]} comes before ${out[k]}).`);
+    }
+    return out;
+  }
+
+  $("customForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const err = $("error");
+    try {
+      const a = parse($("in1").value, "nums1");
+      const b = parse($("in2").value, "nums2");
+      if (a.length + b.length === 0) throw new Error("At least one array must be non-empty.");
+      err.textContent = "";
+      load(a, b);
+      const last = frames[frames.length - 1];
+      console.assert(last.ans === bruteMedian(a, b), "Custom input mismatch", a, b);
+    } catch (ex) {
+      err.textContent = ex.message;
+    }
+  });
+
+  load(PRESETS[2].a, PRESETS[2].b);
+})();
+</script>
+</body>
+</html>

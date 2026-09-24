@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>9. Palindrome Number — Half-Reversal, Animated</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface-2: #f0ede6;
+    --ink: #1d1b18;
+    --ink-soft: #5c574f;
+    --line: #dcd7cc;
+    --accent: #2f6fed;
+    --guard: #d9434e;
+    --peel: #e08a1e;
+    --push: #139e8a;
+    --halt: #7a4fd6;
+    --compare: #2f6fed;
+    --ok: #1f9d55;
+    --bad: #d9434e;
+    --code-bg: #1e1d1b;
+    --code-ink: #e9e5dc;
+    --code-hl: rgba(224, 138, 30, 0.28);
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141312;
+      --surface: #1d1c1a;
+      --surface-2: #26241f;
+      --ink: #f0ece4;
+      --ink-soft: #a9a294;
+      --line: #3a372f;
+      --accent: #6b9bff;
+      --guard: #ff6b75;
+      --peel: #ffab45;
+      --push: #3fd0b9;
+      --halt: #a584ff;
+      --compare: #6b9bff;
+      --ok: #4ad388;
+      --bad: #ff6b75;
+      --code-bg: #0f0e0d;
+      --code-hl: rgba(255, 171, 69, 0.22);
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.55 "IBM Plex Sans", system-ui, sans-serif;
+  }
+  main { max-width: 1120px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1, h2, h3 { font-family: "Bricolage Grotesque", sans-serif; line-height: 1.15; margin: 0; }
+  h1 { font-size: clamp(1.9rem, 4.5vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; }
+  h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 12px; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+
+  /* Header */
+  header.hero { margin-bottom: 22px; }
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .badge {
+    font: 600 .78rem/1 "JetBrains Mono", monospace;
+    padding: 6px 10px; border-radius: 999px;
+    border: 1px solid var(--line); background: var(--surface);
+  }
+  .badge.easy { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .mnemonic {
+    margin: 14px 0 10px; padding: 12px 16px;
+    border-left: 4px solid var(--peel);
+    background: color-mix(in srgb, var(--peel) 10%, var(--surface));
+    border-radius: 0 10px 10px 0;
+    font-family: "Bricolage Grotesque", sans-serif; font-size: 1.15rem; font-weight: 600;
+  }
+  .lede { color: var(--ink-soft); max-width: 75ch; margin: 0; }
+  .lede code { background: var(--surface-2); padding: 1px 6px; border-radius: 5px; color: var(--ink); }
+
+  /* Moves */
+  .moves { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .move {
+    position: relative; padding: 14px 14px 14px 18px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  }
+  .move::before {
+    content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 5px;
+    border-radius: 0 4px 4px 0; background: var(--c);
+  }
+  .move .tag { font: 600 .72rem/1 "JetBrains Mono", monospace; color: var(--c); text-transform: uppercase; letter-spacing: .06em; }
+  .move h3 { font-size: 1.05rem; margin: 6px 0 4px; }
+  .move .rule { font: .82rem/1.4 "JetBrains Mono", monospace; color: var(--ink); margin: 0 0 6px; }
+  .move p { margin: 0; font-size: .88rem; color: var(--ink-soft); }
+  .move.active {
+    border-color: var(--c);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent), var(--shadow);
+    transform: translateY(-2px);
+  }
+
+  /* Layout */
+  .grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+  .col { display: grid; gap: 18px; min-width: 0; }
+
+  /* Stage */
+  .stage { display: grid; gap: 18px; }
+  .row-label { font: 600 .75rem/1 "JetBrains Mono", monospace; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; display: flex; justify-content: space-between; gap: 8px; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 8px; min-height: 58px; align-items: flex-end; padding-top: 22px; }
+  .tile {
+    position: relative;
+    width: 48px; height: 54px; display: grid; place-items: center;
+    font: 600 1.35rem/1 "JetBrains Mono", monospace;
+    background: var(--surface-2); border: 2px solid var(--line); border-radius: 10px;
+    transition: background .25s ease, border-color .25s ease, transform .25s ease, opacity .25s ease;
+  }
+  .tile.peeled { background: color-mix(in srgb, var(--push) 16%, var(--surface)); border-color: color-mix(in srgb, var(--push) 55%, transparent); }
+  .tile.kept { background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+  .tile.active { border-color: var(--peel); background: color-mix(in srgb, var(--peel) 22%, var(--surface)); transform: translateY(-4px); }
+  .tile.fresh { border-color: var(--push); background: color-mix(in srgb, var(--push) 30%, var(--surface)); transform: translateY(-4px); }
+  .tile.middle { border-style: dashed; border-color: var(--halt); background: color-mix(in srgb, var(--halt) 16%, var(--surface)); }
+  .tile.dim { opacity: .35; }
+  .tile.sign { color: var(--guard); border-color: var(--guard); }
+  .tile.ghost { opacity: .4; border-style: dashed; }
+  .tile[data-label]::after {
+    content: attr(data-label);
+    position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    font: 600 .7rem/1 "JetBrains Mono", monospace; white-space: nowrap;
+    color: var(--lc, var(--peel));
+  }
+  .cut { width: 3px; align-self: stretch; margin: 0 2px; background: var(--halt); border-radius: 2px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .8rem; color: var(--ink-soft); }
+  .legend span::before { content: ""; display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+
+  .compare-line {
+    font: 600 1.05rem/1.4 "JetBrains Mono", monospace;
+    padding: 10px 14px; border-radius: 10px; background: var(--surface-2);
+    min-height: 46px;
+  }
+  .compare-line .ok { color: var(--ok); }
+  .compare-line .bad { color: var(--bad); }
+
+  .narration {
+    margin: 0; padding: 12px 14px; border-radius: 10px;
+    background: color-mix(in srgb, var(--accent) 9%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    min-height: 3.2em; font-weight: 500;
+  }
+
+  /* Controls */
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 16px; }
+  button {
+    font: 600 .9rem/1 "IBM Plex Sans", sans-serif;
+    padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); min-width: 92px; }
+  button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .speed { display: flex; gap: 4px; margin-left: auto; }
+  .speed button { padding: 8px 10px; font-family: "JetBrains Mono", monospace; font-size: .8rem; }
+  .scrub { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px; }
+  .scrub input { flex: 1; accent-color: var(--accent); }
+  .scrub output { font: .82rem "JetBrains Mono", monospace; color: var(--ink-soft); min-width: 64px; text-align: right; }
+  .kbd-hint { font-size: .78rem; color: var(--ink-soft); margin-top: 8px; }
+  kbd { font: .75rem "JetBrains Mono", monospace; padding: 1px 6px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; background: var(--surface-2); }
+
+  /* State */
+  .state { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; }
+  .stat .k { font: 600 .7rem/1 "JetBrains Mono", monospace; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .06em; }
+  .stat .v { font: 600 1.25rem/1.3 "JetBrains Mono", monospace; margin-top: 4px; word-break: break-all; }
+  .stat.wide { grid-column: 1 / -1; }
+  .progress { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; margin-top: 8px; }
+  .progress > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--push), var(--halt)); transition: width .3s ease; }
+  .v.true { color: var(--ok); }
+  .v.false { color: var(--bad); }
+
+  /* Code */
+  pre.code {
+    margin: 0; background: var(--code-bg); color: var(--code-ink);
+    border-radius: 12px; padding: 12px 0; overflow-x: auto;
+    font: .84rem/1.65 "JetBrains Mono", monospace;
+  }
+  .ln { display: block; padding: 0 14px 0 0; white-space: pre; border-left: 3px solid transparent; transition: background .2s ease; }
+  .ln .no { display: inline-block; width: 2.6em; text-align: right; padding-right: 12px; color: #77716a; user-select: none; }
+  .ln.hl { background: var(--code-hl); border-left-color: var(--peel); }
+  .kw { color: #ff9e64; } .fn { color: #7dcfff; } .num { color: #c3e88d; } .ty { color: #bb9af7; }
+
+  /* Why fast */
+  .why ul { margin: 8px 0 0; padding-left: 20px; }
+  .why li { margin-bottom: 6px; }
+  .cx { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 12px; }
+  .cx div { background: var(--surface-2); border-radius: 10px; padding: 12px; }
+  .cx b { font-family: "Bricolage Grotesque", sans-serif; display: block; margin-bottom: 4px; }
+
+  /* Try another */
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .presets button { font-family: "JetBrains Mono", monospace; }
+  .custom { display: flex; gap: 8px; flex-wrap: wrap; }
+  .custom input {
+    flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 10px;
+    border: 1px solid var(--line); background: var(--surface-2); color: var(--ink);
+    font: 1rem "JetBrains Mono", monospace;
+  }
+  .error { color: var(--bad); font-size: .88rem; min-height: 1.3em; margin: 8px 0 0; }
+
+  section { margin-top: 18px; }
+
+  @media (max-width: 480px) {
+    main { padding: 18px 12px 40px; }
+    .card { padding: 14px; }
+    .tile { width: 38px; height: 46px; font-size: 1.1rem; }
+    .speed { margin-left: 0; }
+    .state { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .tile.active, .tile.fresh, .move.active { transform: none; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <div class="badges">
+      <span class="badge">LeetCode #9</span>
+      <span class="badge easy">Easy</span>
+      <span class="badge">Math · Half-Reversal</span>
+    </div>
+    <h1>Palindrome Number</h1>
+    <p class="mnemonic">"Fold it in half: peel the tail backward. If it matches the head, it's a palindrome."</p>
+    <p class="lede">
+      Given an integer <code>x</code>, return <code>true</code> if it reads the same forward and backward.
+      For example, <code>121</code> is a palindrome but <code>-121</code> is not (it reads <code>121-</code> backward).
+      Follow-up: solve it <em>without converting to a string</em>. The trick is to reverse only the
+      <strong>second half</strong> of the digits and compare that with the first half.
+    </p>
+  </header>
+
+  <div class="moves" role="list" aria-label="Algorithm moves">
+    <article class="move" role="listitem" data-move="guard" style="--c: var(--guard)">
+      <span class="tag">Move 1 · Guard</span>
+      <h3>Reject impossible shapes</h3>
+      <p class="rule">x &lt; 0 or (x % 10 == 0 and x ≠ 0) → False</p>
+      <p>A minus sign can't mirror. A trailing 0 would need a leading 0, which no number has.</p>
+    </article>
+    <article class="move" role="listitem" data-move="peel" style="--c: var(--peel)">
+      <span class="tag">Move 2 · Peel</span>
+      <h3>Pop the last digit</h3>
+      <p class="rule">d = x % 10;  x //= 10</p>
+      <p>Take the digit off the tail of <code>x</code>. That makes the front half shorter.</p>
+    </article>
+    <article class="move" role="listitem" data-move="push" style="--c: var(--push)">
+      <span class="tag">Move 3 · Push</span>
+      <h3>Build the reversed tail</h3>
+      <p class="rule">rev = rev * 10 + d</p>
+      <p>Shift <code>rev</code> left one place and append the digit, so the tail builds up in reverse.</p>
+    </article>
+    <article class="move" role="listitem" data-move="halt" style="--c: var(--halt)">
+      <span class="tag">Move 4 · Halt</span>
+      <h3>Stop at the middle</h3>
+      <p class="rule">while x &gt; rev</p>
+      <p>Once <code>rev</code> catches up to <code>x</code>, half the digits have been reversed. There's no need to go further.</p>
+    </article>
+    <article class="move" role="listitem" data-move="compare" style="--c: var(--compare)">
+      <span class="tag">Move 5 · Compare</span>
+      <h3>Match the halves</h3>
+      <p class="rule">x == rev or x == rev // 10</p>
+      <p>With an even digit count the halves must be equal. With an odd count, drop the middle digit from <code>rev</code> first.</p>
+    </article>
+  </div>
+
+  <div class="grid">
+    <div class="col">
+      <section class="card" aria-labelledby="stage-h" style="margin-top:0">
+        <h2 id="stage-h">Interactive stage</h2>
+        <div class="stage">
+          <div>
+            <div class="row-label"><span>original number</span><span id="origLabel"></span></div>
+            <div class="tiles" id="origTiles" aria-label="Original digits"></div>
+          </div>
+          <div>
+            <div class="row-label"><span>x: front half remaining</span></div>
+            <div class="tiles" id="xTiles" aria-label="Digits remaining in x"></div>
+          </div>
+          <div>
+            <div class="row-label"><span>rev: back half, reversed</span></div>
+            <div class="tiles" id="revTiles" aria-label="Digits of rev"></div>
+          </div>
+          <div class="compare-line" id="compareLine" aria-label="Comparison"></div>
+          <div class="legend" aria-hidden="true">
+            <span style="--c: color-mix(in srgb, var(--accent) 30%, var(--surface))">front half (x)</span>
+            <span style="--c: var(--push)">peeled into rev</span>
+            <span style="--c: var(--peel)">digit being peeled</span>
+            <span style="--c: var(--halt)">middle / cut</span>
+          </div>
+          <p class="narration" id="narration" aria-live="polite"></p>
+        </div>
+
+        <div class="controls" role="group" aria-label="Playback controls">
+          <button id="btnRestart" title="Restart (R)">⟲ Restart</button>
+          <button id="btnBack" title="Back (←)">◀ Back</button>
+          <button id="btnPlay" class="primary" title="Play/Pause (Space)">▶ Play</button>
+          <button id="btnNext" title="Next (→)">Next ▶</button>
+          <div class="speed" role="group" aria-label="Speed">
+            <button data-speed="0.5" aria-pressed="false">0.5×</button>
+            <button data-speed="1" aria-pressed="true">1×</button>
+            <button data-speed="2" aria-pressed="false">2×</button>
+          </div>
+          <div class="scrub">
+            <label for="scrubber" class="mono" style="font-size:.8rem;color:var(--ink-soft)">frame</label>
+            <input type="range" id="scrubber" min="0" max="0" value="0" aria-label="Frame scrubber">
+            <output id="frameOut" for="scrubber">0 / 0</output>
+          </div>
+        </div>
+        <p class="kbd-hint"><kbd>Space</kbd> play/pause · <kbd>←</kbd> <kbd>→</kbd> step · <kbd>R</kbd> restart</p>
+      </section>
+
+      <section class="card why" aria-labelledby="why-h">
+        <h2 id="why-h">Why it's fast</h2>
+        <p style="margin:0">
+          <strong>Key insight:</strong> A palindrome's second half, read backward, <em>is</em> its first half.
+          So we reverse only half of the number. Because we remove digits from <code>x</code> as we add them to <code>rev</code>,
+          the moment <code>x ≤ rev</code> tells us we've reached the middle, without ever counting digits.
+        </p>
+        <ul>
+          <li>We never build a string, so no extra memory is needed.</li>
+          <li>Reversing only half means <code>rev</code> never exceeds about √x, so it <strong>can't overflow</strong>. Fully reversing a 32-bit int (e.g. <code>2147483647</code>) can overflow.</li>
+          <li>The trailing-zero guard is required. Without it, <code>10</code> would halt at <code>x = 1, rev = 0</code>, and <code>rev // 10 = 0 ≠ 1</code> works only by luck. For inputs like <code>110</code>, dividing out the zero would give a wrong answer.</li>
+        </ul>
+        <div class="cx">
+          <div><b>Half-reversal</b><span class="mono">O(log₁₀ n)</span> time, only ⌈d/2⌉ loop iterations<br><span class="mono">O(1)</span> space</div>
+          <div><b>String + reverse</b><span class="mono">O(log₁₀ n)</span> time<br><span class="mono">O(d)</span> extra space for the string copy</div>
+          <div><b>Full reversal</b><span class="mono">O(log₁₀ n)</span> time, 2× the iterations<br>overflow risk in fixed-width ints</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="card" aria-labelledby="state-h" style="margin-top:0">
+        <h2 id="state-h">State</h2>
+        <div class="state">
+          <div class="stat"><div class="k">x</div><div class="v" id="sX">—</div></div>
+          <div class="stat"><div class="k">rev</div><div class="v" id="sRev">—</div></div>
+          <div class="stat"><div class="k">digit d</div><div class="v" id="sD">—</div></div>
+          <div class="stat"><div class="k">iterations</div><div class="v" id="sIter">0</div></div>
+          <div class="stat"><div class="k">operations</div><div class="v" id="sOps">0</div></div>
+          <div class="stat"><div class="k">answer</div><div class="v" id="sAns">…</div></div>
+          <div class="stat wide">
+            <div class="k">digits peeled into rev: <span id="sProg">0 / 0</span></div>
+            <div class="progress" aria-hidden="true"><div id="progBar"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="code-h">
+        <h2 id="code-h">Python solution</h2>
+        <pre class="code" id="code" aria-label="Python code with current line highlighted"></pre>
+      </section>
+
+      <section class="card" aria-labelledby="try-h">
+        <h2 id="try-h">Try another example</h2>
+        <div class="presets" id="presets"></div>
+        <form class="custom" id="customForm" novalidate>
+          <label for="customInput" class="sr-only" style="position:absolute;left:-9999px">Custom integer</label>
+          <input id="customInput" type="text" inputmode="numeric" placeholder="e.g. 1234321" autocomplete="off" aria-describedby="err">
+          <button type="submit" class="primary">Run</button>
+        </form>
+        <p class="error" id="err" role="alert"></p>
+      </section>
+    </div>
+  </div>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const CODE = [
+    "class Solution:",
+    "    def isPalindrome(self, x: int) -> bool:",
+    "        if x < 0 or (x % 10 == 0 and x != 0):",
+    "            return False",
+    "        rev = 0",
+    "        while x > rev:",
+    "            rev = rev * 10 + x % 10",
+    "            x //= 10",
+    "        return x == rev or x == rev // 10",
+  ];
+
+  const INT_MIN = -2147483648, INT_MAX = 2147483647;
+  const PRESETS = [121, -121, 10, 0, 1221, 12321, 123, 1000021];
+
+  // ---------- Algorithm → frames ----------
+  function build(input) {
+    const orig = input;
+    const s = String(orig);
+    const frames = [];
+    let x = orig, rev = 0, k = 0, d = null, iter = 0, ops = 0;
+
+    const snap = (kind, move, lines, msg, extra = {}) => frames.push({
+      kind, move, lines, msg, x, rev, k, d, iter, ops, orig, s,
+      result: null, odd: false, ...extra
+    });
+
+    snap("start", null, [2], `Is ${orig} a palindrome? We'll check without converting it to a string.`);
+
+    ops++;
+    const neg = x < 0;
+    const trail = !neg && x % 10 === 0 && x !== 0;
+    if (neg) {
+      snap("guard", "guard", [3], `x = ${x} is negative. Backward it would read "${s.slice(1).split("").reverse().join("")}-", so it can never match.`);
+      snap("done", "guard", [4], `Return False. Negative numbers are never palindromes.`, { result: false });
+      return frames;
+    }
+    if (trail) {
+      snap("guard", "guard", [3], `x = ${x} ends in 0 but isn't 0. A palindrome would have to start with 0, which is impossible.`);
+      snap("done", "guard", [4], `Return False. Nonzero numbers with a trailing 0 can't be palindromes.`, { result: false });
+      return frames;
+    }
+    snap("guard", "guard", [3], `x = ${x} is non-negative and doesn't end in 0 (or is 0 itself), so it passes the guard.`);
+
+    ops++;
+    snap("init", "push", [5], `Start rev = 0. It will collect the back half of the digits in reverse.`);
+
+    while (true) {
+      ops++;
+      if (!(x > rev)) {
+        snap("halt", "halt", [6], `x = ${x} ≤ rev = ${rev}. We've reached the middle, so stop peeling.`);
+        break;
+      }
+      snap("check", "halt", [6], `x = ${x} > rev = ${rev}. More than half remains, so keep peeling.`);
+
+      d = x % 10; ops++;
+      snap("peel", "peel", [7], `Peel the last digit: ${x} % 10 = ${d}.`);
+
+      const old = rev;
+      rev = rev * 10 + d; k++; iter++; ops++;
+      snap("push", "push", [7], `Push onto rev: ${old} × 10 + ${d} = ${rev}.`);
+
+      x = Math.floor(x / 10); ops++;
+      snap("chop", "peel", [8], `Drop it from x: x //= 10 → ${x}.`);
+      d = null;
+    }
+
+    ops++;
+    const even = x === rev;
+    const oddMatch = x === Math.floor(rev / 10);
+    const result = even || oddMatch;
+    let msg;
+    if (even) msg = `Even digit count: x = ${x} equals rev = ${rev}. Palindrome ✓`;
+    else if (oddMatch) msg = `Odd digit count: the middle digit ${rev % 10} sits alone. x = ${x} equals rev // 10 = ${Math.floor(rev / 10)}. Palindrome ✓`;
+    else msg = `x = ${x} ≠ rev = ${rev} and x ≠ rev // 10 = ${Math.floor(rev / 10)}. The halves don't mirror. Not a palindrome ✗`;
+    snap("done", "compare", [9], msg, { result, odd: !even && oddMatch, even });
+    return frames;
+  }
+
+  // ---------- Self-checks ----------
+  const reference = n => { const t = String(n); return t === t.split("").reverse().join(""); };
+  [121, -121, 10, 0, 1, 11, 12321, 1221, 123, 1000021, 1001, 110, 2147483647, INT_MIN, 9, 1000000001]
+    .forEach(n => {
+      const f = build(n);
+      const last = f[f.length - 1];
+      console.assert(last.result === reference(n), `isPalindrome(${n}) expected ${reference(n)} got ${last.result}`);
+      console.assert(f.every(fr => fr.lines.every(l => l >= 1 && l <= CODE.length)), `bad line refs for ${n}`);
+    });
+
+  // ---------- DOM ----------
+  const $ = id => document.getElementById(id);
+  const el = {
+    orig: $("origTiles"), origLabel: $("origLabel"), x: $("xTiles"), rev: $("revTiles"),
+    cmp: $("compareLine"), nar: $("narration"), play: $("btnPlay"), scrub: $("scrubber"),
+    out: $("frameOut"), code: $("code"), sX: $("sX"), sRev: $("sRev"), sD: $("sD"),
+    sIter: $("sIter"), sOps: $("sOps"), sAns: $("sAns"), sProg: $("sProg"), bar: $("progBar"),
+    err: $("err"), input: $("customInput")
+  };
+  const moveCards = [...document.querySelectorAll(".move")];
+
+  // Code panel with light syntax coloring
+  const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  function colorize(line) {
+    return esc(line)
+      .replace(/\b(class|def|if|or|and|return|while)\b/g, '<span class="kw">$1</span>')
+      .replace(/\b(False|True)\b/g, '<span class="kw">$1</span>')
+      .replace(/\b(isPalindrome|Solution)\b/g, '<span class="fn">$1</span>')
+      .replace(/\b(int|bool)\b/g, '<span class="ty">$1</span>')
+      .replace(/\b(\d+)\b/g, '<span class="num">$1</span>');
+  }
+  el.code.innerHTML = CODE.map((l, i) =>
+    `<span class="ln" data-line="${i + 1}"><span class="no">${i + 1}</span>${colorize(l)}</span>`).join("");
+  const codeLines = [...el.code.querySelectorAll(".ln")];
+
+  function tile(ch, cls = "", label = "", labelColor = "") {
+    const lab = label ? ` data-label="${label}"` : "";
+    const lc = labelColor ? ` style="--lc:${labelColor}"` : "";
+    return `<div class="tile ${cls}"${lab}${lc}>${ch}</div>`;
+  }
+
+  // ---------- Renderer ----------
+  let frames = [], idx = 0, timer = null, speed = 1;
+
+  function show(i) {
+    idx = Math.max(0, Math.min(frames.length - 1, i));
+    const f = frames[idx];
+    const s = f.s, n = s.length;
+    const neg = f.orig < 0;
+    const digitsTotal = neg ? n - 1 : n;
+
+    // Original row
+    let html = "";
+    const peeledFrom = n - f.k;
+    const middleIdx = f.kind === "done" && f.odd ? n - f.k : -1;
+    for (let i = 0; i < n; i++) {
+      const ch = s[i];
+      let cls = "", label = "", lc = "";
+      if (ch === "-") { cls = "sign"; if (f.move === "guard") { label = "sign!"; lc = "var(--guard)"; } }
+      else if (f.kind === "guard" && !neg && i === n - 1 && f.orig % 10 === 0 && f.orig !== 0) { cls = "sign"; label = "trailing 0"; lc = "var(--guard)"; }
+      else if (i === middleIdx) { cls = "middle"; label = "middle"; lc = "var(--halt)"; }
+      else if (i >= peeledFrom) cls = "peeled";
+      else cls = "kept";
+      if (f.kind === "peel" && i === n - 1 - f.k) { cls = "active"; label = "x % 10"; }
+      if (f.kind === "push" && i === n - f.k) { cls = "fresh"; label = "→ rev"; lc = "var(--push)"; }
+      if (f.k > 0 && i === peeledFrom && (f.kind === "halt" || f.kind === "done") && middleIdx < 0) html += '<div class="cut" aria-hidden="true"></div>';
+      html += tile(ch, cls, label, lc);
+    }
+    el.orig.innerHTML = html;
+    el.origLabel.textContent = `${digitsTotal} digit${digitsTotal === 1 ? "" : "s"}`;
+
+    // x row
+    const xs = String(f.x);
+    el.x.innerHTML = xs.split("").map((ch, i) => {
+      if (ch === "-") return tile(ch, "sign");
+      const last = i === xs.length - 1;
+      if (f.kind === "peel" && last) return tile(ch, "active", "d", "var(--peel)");
+      return tile(ch, "kept");
+    }).join("");
+
+    // rev row
+    if (f.kind === "start" || f.kind === "guard" && f.result === null && f.rev === 0 && f.k === 0 && frames[idx + 1]?.kind !== "init" || (f.kind === "done" && f.move === "guard")) {
+      el.rev.innerHTML = tile("·", "ghost");
+    } else if (f.kind === "start" || f.kind === "guard") {
+      el.rev.innerHTML = tile("·", "ghost");
+    } else {
+      const rs = String(f.rev);
+      el.rev.innerHTML = rs.split("").map((ch, i) => {
+        const last = i === rs.length - 1;
+        if (f.k === 0) return tile(ch, "ghost", f.kind === "init" ? "rev = 0" : "", "var(--push)");
+        if (f.kind === "push" && last) return tile(ch, "fresh", "+ d", "var(--push)");
+        if (f.kind === "done" && f.odd && last) return tile(ch, "middle dim", "// 10", "var(--halt)");
+        return tile(ch, "peeled");
+      }).join("");
+    }
+
+    // Comparison line
+    if (f.kind === "done" && f.move === "compare") {
+      const r10 = Math.floor(f.rev / 10);
+      const a = f.x === f.rev, b = f.x === r10;
+      el.cmp.innerHTML =
+        `x == rev → ${f.x} == ${f.rev} <span class="${a ? "ok" : "bad"}">${a ? "✓" : "✗"}</span>` +
+        `&nbsp;&nbsp;or&nbsp;&nbsp;x == rev // 10 → ${f.x} == ${r10} <span class="${b ? "ok" : "bad"}">${b ? "✓" : "✗"}</span>`;
+    } else if (f.kind === "done") {
+      el.cmp.innerHTML = `guard tripped → <span class="bad">False</span>`;
+    } else if (f.kind === "check" || f.kind === "halt") {
+      el.cmp.innerHTML = `x &gt; rev → ${f.x} &gt; ${f.rev} <span class="${f.kind === "check" ? "ok" : "bad"}">${f.kind === "check" ? "keep going" : "stop"}</span>`;
+    } else {
+      el.cmp.innerHTML = `<span style="color:var(--ink-soft)">x = ${f.x}, rev = ${f.kind === "start" || f.kind === "guard" ? "—" : f.rev}</span>`;
+    }
+
+    // Narration, moves, code
+    el.nar.textContent = f.msg;
+    moveCards.forEach(c => c.classList.toggle("active", c.dataset.move === f.move));
+    codeLines.forEach(l => l.classList.toggle("hl", f.lines.includes(+l.dataset.line)));
+
+    // State
+    el.sX.textContent = f.x;
+    el.sRev.textContent = (f.kind === "start" || f.kind === "guard" || (f.kind === "done" && f.move === "guard")) ? "—" : f.rev;
+    el.sD.textContent = f.d === null ? "—" : f.d;
+    el.sIter.textContent = f.iter;
+    el.sOps.textContent = f.ops;
+    el.sAns.textContent = f.result === null ? "…" : (f.result ? "True" : "False");
+    el.sAns.className = "v" + (f.result === null ? "" : f.result ? " true" : " false");
+    const half = Math.ceil(digitsTotal / 2);
+    el.sProg.textContent = `${f.k} / ~${half} (half of ${digitsTotal})`;
+    el.bar.style.width = `${Math.min(100, half ? (f.k / half) * 100 : 100)}%`;
+
+    // Controls
+    el.scrub.value = idx;
+    el.out.textContent = `${idx + 1} / ${frames.length}`;
+    if (idx === frames.length - 1 && timer) pause();
+  }
+
+  // ---------- Playback ----------
+  function tick() {
+    if (idx >= frames.length - 1) { pause(); return; }
+    show(idx + 1);
+    timer = setTimeout(tick, 1100 / speed);
+  }
+  function play() {
+    if (idx >= frames.length - 1) show(0);
+    clearTimeout(timer);
+    timer = setTimeout(tick, 1100 / speed);
+    el.play.textContent = "❚❚ Pause";
+    el.play.setAttribute("aria-label", "Pause");
+  }
+  function pause() {
+    clearTimeout(timer); timer = null;
+    el.play.textContent = "▶ Play";
+    el.play.setAttribute("aria-label", "Play");
+  }
+  const toggle = () => timer ? pause() : play();
+
+  function load(n) {
+    pause();
+    frames = build(n);
+    el.scrub.max = frames.length - 1;
+    show(0);
+  }
+
+  $("btnPlay").addEventListener("click", toggle);
+  $("btnNext").addEventListener("click", () => { pause(); show(idx + 1); });
+  $("btnBack").addEventListener("click", () => { pause(); show(idx - 1); });
+  $("btnRestart").addEventListener("click", () => { pause(); show(0); });
+  el.scrub.addEventListener("input", e => { pause(); show(+e.target.value); });
+
+  document.querySelectorAll(".speed button").forEach(b => b.addEventListener("click", () => {
+    speed = +b.dataset.speed;
+    document.querySelectorAll(".speed button").forEach(o => o.setAttribute("aria-pressed", String(o === b)));
+    if (timer) { clearTimeout(timer); timer = setTimeout(tick, 1100 / speed); }
+  }));
+
+  document.addEventListener("keydown", e => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea") return;
+    if (e.key === " " && tag !== "button") { e.preventDefault(); toggle(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); pause(); show(idx + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); pause(); show(idx - 1); }
+    else if (e.key === "r" || e.key === "R") { pause(); show(0); }
+  });
+
+  // ---------- Presets & custom input ----------
+  const presetBox = $("presets");
+  PRESETS.forEach(n => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = n;
+    b.addEventListener("click", () => { el.err.textContent = ""; el.input.value = n; load(n); });
+    presetBox.appendChild(b);
+  });
+
+  $("customForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const raw = el.input.value.trim();
+    if (!raw) { el.err.textContent = "Enter an integer, e.g. 12321."; return; }
+    if (!/^-?\d+$/.test(raw)) { el.err.textContent = "Only an optional minus sign followed by digits is allowed (no spaces, decimals, or letters)."; return; }
+    if (/^-?0\d/.test(raw)) { el.err.textContent = "Leading zeros aren't part of an integer. Remove them (e.g. 0121 → 121)."; return; }
+    const n = Number(raw);
+    if (!Number.isSafeInteger(n) || n < INT_MIN || n > INT_MAX) {
+      el.err.textContent = `Out of range. LeetCode constrains −2³¹ ≤ x ≤ 2³¹ − 1 (${INT_MIN} … ${INT_MAX}).`;
+      return;
+    }
+    el.err.textContent = "";
+    load(n === 0 ? 0 : n); // normalizes -0
+  });
+
+  load(121);
+})();
+</script>
+</body>
+</html>

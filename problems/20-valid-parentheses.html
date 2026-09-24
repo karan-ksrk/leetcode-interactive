@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>20. Valid Parentheses — Interactive Stack Walkthrough</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --surface-2: #efece4;
+    --ink: #1c1b19;
+    --muted: #6a665d;
+    --line: #dcd7cb;
+    --accent: #e0662f;
+    --push: #2f6fe0;
+    --push-soft: #dfe9fc;
+    --compare: #c98a06;
+    --compare-soft: #fbefcf;
+    --pop: #1f9d63;
+    --pop-soft: #d8f2e5;
+    --fail: #d23b3b;
+    --fail-soft: #fbdede;
+    --final: #7c4ddb;
+    --final-soft: #ebe2fb;
+    --code-bg: #1d1f24;
+    --code-ink: #d9dce3;
+    --code-muted: #6e7480;
+    --code-hl: rgba(224, 102, 47, 0.22);
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.06);
+    --font-head: "Bricolage Grotesque", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #131416;
+      --surface: #1b1d21;
+      --surface-2: #24272c;
+      --ink: #ecebe7;
+      --muted: #9a978f;
+      --line: #33363d;
+      --accent: #f07c45;
+      --push: #6a9cff;
+      --push-soft: #1e2b45;
+      --compare: #f0b429;
+      --compare-soft: #3a2f14;
+      --pop: #3fcf8e;
+      --pop-soft: #163326;
+      --fail: #ff6b6b;
+      --fail-soft: #3d1c1c;
+      --final: #a98bff;
+      --final-soft: #2a2242;
+      --code-bg: #0f1013;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 24px rgba(0,0,0,.3);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1, h2, h3 { font-family: var(--font-head); line-height: 1.15; margin: 0; }
+  h2 { font-size: 1.3rem; margin-bottom: 12px; }
+  a { color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px;
+  }
+
+  /* Header */
+  header.hero { margin-bottom: 22px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .chip {
+    font-family: var(--font-mono); font-size: .78rem; font-weight: 600;
+    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
+    background: var(--surface);
+  }
+  .chip.easy { color: var(--pop); border-color: var(--pop); background: var(--pop-soft); }
+  .chip.tech { color: var(--push); border-color: var(--push); background: var(--push-soft); }
+  .hero h1 { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 800; letter-spacing: -.02em; }
+  .mnemonic {
+    display: inline-block; margin: 14px 0 10px; padding: 8px 14px;
+    font-family: var(--font-head); font-weight: 700; font-size: 1.15rem;
+    border-left: 4px solid var(--accent); background: var(--surface); border-radius: 0 10px 10px 0;
+  }
+  .hero p { max-width: 760px; color: var(--muted); margin: 6px 0 0; }
+  .hero code, p code, li code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+
+  /* Moves */
+  .moves { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 22px; }
+  .move {
+    --c: var(--muted); --soft: var(--surface-2);
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 14px; position: relative; transition: transform .2s, box-shadow .2s, border-color .2s;
+  }
+  .move[data-move="push"] { --c: var(--push); --soft: var(--push-soft); }
+  .move[data-move="compare"] { --c: var(--compare); --soft: var(--compare-soft); }
+  .move[data-move="pop"] { --c: var(--pop); --soft: var(--pop-soft); }
+  .move[data-move="fail"] { --c: var(--fail); --soft: var(--fail-soft); }
+  .move[data-move="final"] { --c: var(--final); --soft: var(--final-soft); }
+  .move .tag {
+    display: inline-block; font-family: var(--font-mono); font-size: .72rem; font-weight: 600;
+    color: var(--c); background: var(--soft); padding: 2px 8px; border-radius: 6px; margin-bottom: 6px;
+  }
+  .move h3 { font-size: 1rem; margin-bottom: 4px; }
+  .move .rule { font-family: var(--font-mono); font-size: .8rem; color: var(--c); margin-bottom: 6px; }
+  .move p { margin: 0; font-size: .88rem; color: var(--muted); }
+  .move.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), var(--shadow); transform: translateY(-2px); background: var(--soft); }
+
+  /* Main grid */
+  .main { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; align-items: start; }
+  @media (max-width: 880px) { .main { grid-template-columns: 1fr; } }
+  .col { display: grid; gap: 18px; }
+
+  /* Stage */
+  .stage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .kind-badge {
+    font-family: var(--font-mono); font-size: .75rem; font-weight: 600; padding: 3px 9px; border-radius: 6px;
+    background: var(--surface-2); color: var(--muted);
+  }
+  .kind-badge.push { background: var(--push-soft); color: var(--push); }
+  .kind-badge.compare { background: var(--compare-soft); color: var(--compare); }
+  .kind-badge.pop { background: var(--pop-soft); color: var(--pop); }
+  .kind-badge.fail { background: var(--fail-soft); color: var(--fail); }
+  .kind-badge.final { background: var(--final-soft); color: var(--final); }
+  .tiles {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 18px 4px 6px; min-height: 104px;
+    justify-content: center;
+  }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 44px; }
+  .idx { font-family: var(--font-mono); font-size: .7rem; color: var(--muted); }
+  .tile {
+    width: 44px; height: 50px; display: grid; place-items: center; position: relative;
+    font-family: var(--font-mono); font-size: 1.45rem; font-weight: 600;
+    background: var(--surface-2); border: 2px solid var(--line); border-radius: 10px;
+    transition: background .25s, border-color .25s, transform .25s, color .25s;
+  }
+  .tile.stack { background: var(--push-soft); border-color: var(--push); color: var(--push); }
+  .tile.matched { background: var(--pop-soft); border-color: var(--pop); color: var(--pop); }
+  .tile.bad { background: var(--fail-soft); border-color: var(--fail); color: var(--fail); }
+  .tile.current { transform: translateY(-6px); box-shadow: 0 0 0 3px var(--accent); }
+  .tile.top-cmp { box-shadow: 0 0 0 3px var(--compare); }
+  .tile .pair {
+    position: absolute; top: -9px; right: -8px; font-size: .62rem; font-weight: 600;
+    background: var(--pop); color: #fff; border-radius: 999px; padding: 1px 5px; line-height: 1.3;
+  }
+  .ptr { height: 20px; font-family: var(--font-mono); font-size: .75rem; font-weight: 600; color: var(--accent); visibility: hidden; }
+  .ptr.on { visibility: visible; }
+  .narration {
+    margin-top: 10px; padding: 12px 14px; border-radius: 10px; background: var(--surface-2);
+    font-size: .98rem; min-height: 3.2em; border-left: 4px solid var(--accent);
+  }
+  .result-banner { margin-top: 10px; font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; min-height: 1.4em; }
+  .result-banner.ok { color: var(--pop); }
+  .result-banner.no { color: var(--fail); }
+
+  /* Controls */
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+  button {
+    font-family: var(--font-body); font-size: .9rem; font-weight: 600; cursor: pointer;
+    padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--surface); color: var(--ink); transition: background .15s, border-color .15s;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 88px; }
+  .speed { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .speed button { border: 0; border-radius: 0; padding: 8px 10px; font-family: var(--font-mono); font-size: .8rem; }
+  .speed button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .scrub { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+  .scrub input { flex: 1; accent-color: var(--accent); }
+  .scrub output { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); min-width: 64px; text-align: right; }
+  .kbd-hint { font-size: .78rem; color: var(--muted); margin-top: 8px; }
+  kbd { font-family: var(--font-mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface-2); }
+
+  /* State panel */
+  .state-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .stackbox {
+    grid-row: span 2; border: 2px solid var(--line); border-top: 0; border-radius: 0 0 12px 12px;
+    min-height: 220px; padding: 8px; display: flex; flex-direction: column-reverse; gap: 6px;
+    background: var(--surface-2);
+  }
+  .stack-label { font-size: .8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+  .sitem {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono); padding: 6px 10px; border-radius: 8px;
+    background: var(--push-soft); color: var(--push); border: 2px solid var(--push);
+    animation: drop .25s ease-out;
+  }
+  .sitem b { font-size: 1.2rem; }
+  .sitem small { font-size: .7rem; opacity: .8; }
+  .sitem.top::after { content: "top"; font-size: .65rem; font-weight: 600; margin-left: 6px; }
+  .sitem.cmp { background: var(--compare-soft); color: var(--compare); border-color: var(--compare); }
+  .sitem.bad { background: var(--fail-soft); color: var(--fail); border-color: var(--fail); }
+  .empty-note { color: var(--muted); font-size: .8rem; text-align: center; margin: auto 0; }
+  @keyframes drop { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .kv { font-size: .88rem; }
+  .kv div { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font-family: var(--font-mono); font-weight: 600; }
+  .pairs-map { font-family: var(--font-mono); font-size: .82rem; display: grid; gap: 4px; }
+  .pairs-map span { background: var(--surface-2); padding: 3px 8px; border-radius: 6px; }
+  .progress { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 8px; }
+  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+
+  /* Code */
+  .code {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 12px; padding: 12px 0;
+    font-family: var(--font-mono); font-size: .82rem; overflow-x: auto; margin: 0;
+  }
+  .code .ln { display: block; padding: 1px 14px 1px 0; white-space: pre; border-left: 3px solid transparent; transition: background .2s; }
+  .code .ln .n { display: inline-block; width: 2.6em; text-align: right; padding-right: 1em; color: var(--code-muted); user-select: none; }
+  .code .ln.hl { background: var(--code-hl); border-left-color: var(--accent); }
+  .kw { color: #c792ea; } .str { color: #c3e88d; } .fn { color: #82aaff; } .bi { color: #ffcb6b; } .cm { color: #6e7480; font-style: italic; }
+
+  /* Why + Try */
+  .why ul { margin: 8px 0 0; padding-left: 20px; }
+  .why li { margin-bottom: 6px; }
+  .cmp-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .88rem; }
+  .cmp-table th, .cmp-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+  .cmp-table th { font-family: var(--font-head); }
+  .cmp-table td.mono { font-family: var(--font-mono); }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
+  .presets button { font-family: var(--font-mono); font-size: .85rem; }
+  .presets button[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-2); }
+  .custom { display: flex; gap: 8px; flex-wrap: wrap; }
+  .custom input {
+    flex: 1; min-width: 160px; font-family: var(--font-mono); font-size: .95rem;
+    padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .error { color: var(--fail); font-size: .85rem; min-height: 1.3em; margin-top: 6px; }
+  .section-gap { margin-top: 18px; }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 18px 10px 40px; }
+    .card { padding: 14px; }
+    .cell, .tile { width: 36px; }
+    .tile { height: 44px; font-size: 1.2rem; }
+    .state-grid { grid-template-columns: 1fr; }
+    .stackbox { grid-row: auto; min-height: 150px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+    .tile.current, .move.active { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="meta">
+      <span class="chip">LeetCode #20</span>
+      <span class="chip easy">Easy</span>
+      <span class="chip tech">Stack</span>
+      <span class="chip">String</span>
+    </div>
+    <h1>Valid Parentheses</h1>
+    <div class="mnemonic">“Openers wait on the stack; every closer must match the top.”</div>
+    <p>
+      You get a string <code>s</code> made only of <code>( ) [ ] { }</code>. It is <strong>valid</strong> when every opening
+      bracket is closed by the same type, brackets close in the right order (the most recent opener closes first),
+      and every closer has a matching opener. Return <code>true</code> or <code>false</code>.
+    </p>
+  </header>
+
+  <section aria-label="Algorithm moves" class="moves" id="moves">
+    <article class="move" data-move="push">
+      <span class="tag">MOVE 1 · PUSH</span>
+      <h3>Opener? Push it</h3>
+      <div class="rule">ch in "([{" → stack.append(ch)</div>
+      <p>An opener can't be judged yet. Park it on the stack until its partner shows up.</p>
+    </article>
+    <article class="move" data-move="compare">
+      <span class="tag">MOVE 2 · PEEK</span>
+      <h3>Closer? Check the top</h3>
+      <div class="rule">stack[-1] == pairs[ch] ?</div>
+      <p>Only the most recent unclosed opener is allowed to close now. Compare it with this closer.</p>
+    </article>
+    <article class="move" data-move="pop">
+      <span class="tag">MOVE 3 · POP</span>
+      <h3>Match → pop</h3>
+      <div class="rule">stack.pop()</div>
+      <p>The pair is done. Removing it shows the next opener that still needs closing.</p>
+    </article>
+    <article class="move" data-move="fail">
+      <span class="tag">MOVE 4 · FAIL FAST</span>
+      <h3>Empty or wrong → false</h3>
+      <div class="rule">not stack or top ≠ pair → return False</div>
+      <p>A closer with nothing to close, or the wrong bracket type, fails right away.</p>
+    </article>
+    <article class="move" data-move="final">
+      <span class="tag">MOVE 5 · FINAL</span>
+      <h3>Stack empty at end?</h3>
+      <div class="rule">return not stack</div>
+      <p>Any openers still on the stack were never closed, so the string is invalid.</p>
+    </article>
+  </section>
+
+  <div class="main">
+    <div class="col">
+      <section class="card" aria-labelledby="stage-title">
+        <div class="stage-head">
+          <h2 id="stage-title">Scan the string</h2>
+          <span class="kind-badge" id="kindBadge">init</span>
+        </div>
+        <div class="tiles" id="tiles" role="img" aria-label="Characters of the input string"></div>
+        <div class="narration" id="narration" aria-live="polite"></div>
+        <div class="result-banner" id="resultBanner"></div>
+
+        <div class="controls" role="group" aria-label="Playback controls">
+          <button id="btnRestart" title="Restart (R)">⟲ Restart</button>
+          <button id="btnBack" title="Back (←)">◀ Back</button>
+          <button id="btnPlay" class="primary" title="Play/Pause (Space)">▶ Play</button>
+          <button id="btnNext" title="Next (→)">Next ▶</button>
+          <div class="speed" role="group" aria-label="Playback speed">
+            <button data-speed="0.5" aria-pressed="false">0.5×</button>
+            <button data-speed="1" aria-pressed="true">1×</button>
+            <button data-speed="2" aria-pressed="false">2×</button>
+          </div>
+        </div>
+        <div class="scrub">
+          <label for="scrubber" class="stack-label" style="margin:0">Frame</label>
+          <input type="range" id="scrubber" min="0" max="0" value="0">
+          <output id="frameOut" for="scrubber">0 / 0</output>
+        </div>
+        <div class="kbd-hint"><kbd>Space</kbd> play/pause · <kbd>←</kbd><kbd>→</kbd> step · <kbd>R</kbd> restart</div>
+      </section>
+
+      <section class="card why" aria-labelledby="why-title">
+        <h2 id="why-title">Why it's fast</h2>
+        <p><strong>Key insight:</strong> brackets nest, so the last opener must close first (last in, first out).
+          A stack follows that rule directly. Each character gets pushed at most once and popped at most once, so a single
+          pass is enough.</p>
+        <ul>
+          <li><strong>Time:</strong> <code>O(n)</code>. One pass, O(1) work per character.</li>
+          <li><strong>Space:</strong> <code>O(n)</code>. In the worst case (e.g. <code>"(((("</code>) every character is on the stack.</li>
+          <li><strong>Early exit:</strong> a mismatch stops the scan immediately. Odd-length strings can't be valid either.</li>
+        </ul>
+        <table class="cmp-table">
+          <thead><tr><th>Approach</th><th>Time</th><th>Space</th></tr></thead>
+          <tbody>
+            <tr><td>Brute force: repeatedly delete <code>()</code>, <code>[]</code>, <code>{}</code></td><td class="mono">O(n²)</td><td class="mono">O(n)</td></tr>
+            <tr><td><strong>Stack scan</strong></td><td class="mono">O(n)</td><td class="mono">O(n)</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="card" aria-labelledby="state-title">
+        <h2 id="state-title">State</h2>
+        <div class="state-grid">
+          <div>
+            <div class="stack-label">stack (top ↑)</div>
+            <div class="stackbox" id="stackBox" aria-label="Stack contents"></div>
+          </div>
+          <dl class="kv" style="margin:0">
+            <div><dt>index i</dt><dd id="stI">–</dd></div>
+            <div><dt>char</dt><dd id="stCh">–</dd></div>
+            <div><dt>stack size</dt><dd id="stSize">0</dd></div>
+            <div><dt>pairs closed</dt><dd id="stPairs">0</dd></div>
+            <div><dt>operations</dt><dd id="stOps">0</dd></div>
+            <div><dt>result</dt><dd id="stRes">…</dd></div>
+          </dl>
+          <div>
+            <div class="stack-label">pairs map</div>
+            <div class="pairs-map">
+              <span>')' → '('</span><span>']' → '['</span><span>'}' → '{'</span>
+            </div>
+            <div class="stack-label" style="margin-top:10px">progress</div>
+            <div class="progress" aria-hidden="true"><div id="progBar"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="code-title">
+        <h2 id="code-title">Python solution</h2>
+        <pre class="code" id="code" aria-label="Python solution with current lines highlighted"></pre>
+      </section>
+
+      <section class="card" aria-labelledby="try-title">
+        <h2 id="try-title">Try another example</h2>
+        <div class="presets" id="presets" role="group" aria-label="Preset examples"></div>
+        <form class="custom" id="customForm" novalidate>
+          <label for="customInput" class="stack-label" style="width:100%;margin:0">Custom string (only <code>()[]{}</code>, 1–40 chars)</label>
+          <input id="customInput" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. {[()]}" aria-describedby="err">
+          <button type="submit" class="primary">Run</button>
+        </form>
+        <div class="error" id="err" role="alert"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const PAIRS = { ')': '(', ']': '[', '}': '{' };
+  const CLOSE_OF = { '(': ')', '[': ']', '{': '}' };
+  const VALID_CHARS = /^[()\[\]{}]+$/;
+  const MAX_LEN = 40;
+
+  const CODE = [
+    '<span class="kw">class</span> <span class="fn">Solution</span>:',
+    '    <span class="kw">def</span> <span class="fn">isValid</span>(self, s: <span class="bi">str</span>) -&gt; <span class="bi">bool</span>:',
+    '        pairs = {<span class="str">\')\'</span>: <span class="str">\'(\'</span>, <span class="str">\']\'</span>: <span class="str">\'[\'</span>, <span class="str">\'}\'</span>: <span class="str">\'{\'</span>}',
+    '        stack = []',
+    '        <span class="kw">for</span> ch <span class="kw">in</span> s:',
+    '            <span class="kw">if</span> ch <span class="kw">in</span> pairs:                <span class="cm"># closer</span>',
+    '                <span class="kw">if</span> <span class="kw">not</span> stack <span class="kw">or</span> stack[-1] != pairs[ch]:',
+    '                    <span class="kw">return</span> <span class="kw">False</span>',
+    '                stack.pop()',
+    '            <span class="kw">else</span>:                          <span class="cm"># opener</span>',
+    '                stack.append(ch)',
+    '        <span class="kw">return</span> <span class="kw">not</span> stack'
+  ];
+
+  const KIND_TO_MOVE = {
+    init: null, push: 'push', compare: 'compare', pop: 'pop',
+    fail: 'fail', 'end-ok': 'final', 'end-left': 'final'
+  };
+  const KIND_BADGE = {
+    init: ['start', ''], push: ['push', 'push'], compare: ['peek', 'compare'], pop: ['pop', 'pop'],
+    fail: ['fail', 'fail'], 'end-ok': ['done ✓', 'final'], 'end-left': ['leftover', 'final']
+  };
+
+  /* ---------- build: run the real algorithm, capture snapshots ---------- */
+  function build(s) {
+    const frames = [];
+    const stack = [];
+    const state = new Array(s.length).fill('pending');
+    const pairId = new Array(s.length).fill(0);
+    let ops = 0, pairsClosed = 0;
+
+    const snap = (o) => frames.push(Object.assign({
+      s, i: -1, ops, pairsClosed,
+      stack: stack.map(x => ({ ...x })),
+      state: state.slice(), pairId: pairId.slice(),
+      result: null, lines: [], cmpTop: false, badTop: false
+    }, o));
+
+    snap({ kind: 'init', lines: [3, 4],
+      message: `Start with an empty stack. Scan "${s}" left to right, one character at a time.` });
+
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+      ops++;
+      if (!(ch in PAIRS)) {
+        stack.push({ ch, idx: i });
+        state[i] = 'stack';
+        snap({ kind: 'push', i, ops, lines: [5, 6, 10, 11],
+          message: `s[${i}] = '${ch}' is an opener → push it. It waits for a '${CLOSE_OF[ch]}'.` });
+        continue;
+      }
+      const need = PAIRS[ch];
+      if (stack.length === 0) {
+        state[i] = 'bad';
+        snap({ kind: 'fail', i, ops, result: false, lines: [5, 6, 7, 8],
+          message: `s[${i}] = '${ch}' is a closer, but the stack is empty. Nothing to close → return False.` });
+        return frames;
+      }
+      const top = stack[stack.length - 1];
+      snap({ kind: 'compare', i, ops, cmpTop: true, lines: [5, 6, 7],
+        message: `s[${i}] = '${ch}' is a closer. It needs '${need}' on top, and the top is '${top.ch}' (index ${top.idx}).` });
+      if (top.ch !== need) {
+        state[i] = 'bad';
+        state[top.idx] = 'bad';
+        snap({ kind: 'fail', i, ops, result: false, badTop: true, lines: [7, 8],
+          message: `Mismatch: '${top.ch}' can't be closed by '${ch}'. The nesting is broken → return False.` });
+        return frames;
+      }
+      stack.pop();
+      pairsClosed++;
+      state[i] = 'matched'; state[top.idx] = 'matched';
+      pairId[i] = pairsClosed; pairId[top.idx] = pairsClosed;
+      snap({ kind: 'pop', i, ops, pairsClosed, lines: [9],
+        message: `Match! Pop '${top.ch}'. Pair #${pairsClosed} (indices ${top.idx}↔${i}) is closed.` +
+          (stack.length ? ` The new top is '${stack[stack.length - 1].ch}'.` : ' The stack is now empty.') });
+    }
+
+    const ok = stack.length === 0;
+    if (!ok) stack.forEach(x => { state[x.idx] = 'bad'; });
+    snap({ kind: ok ? 'end-ok' : 'end-left', result: ok, lines: [12], badTop: !ok,
+      message: ok
+        ? `Scan finished and the stack is empty. Every opener found its partner → return True.`
+        : `Scan finished, but ${stack.length} opener${stack.length > 1 ? 's' : ''} (${stack.map(x => `'${x.ch}'`).join(', ')}) never closed → return False.` });
+    return frames;
+  }
+
+  // Independent reference (brute-force reduction) for self-checks
+  function reference(s) {
+    let prev;
+    do { prev = s; s = s.replace(/\(\)|\[\]|\{\}/g, ''); } while (s !== prev);
+    return s.length === 0;
+  }
+  const finalResult = (fr) => fr[fr.length - 1].result;
+
+  /* ---------- self-checks ---------- */
+  const PRESETS = [
+    { s: '()[]{}', label: '()[]{}' },
+    { s: '{[()()]}', label: '{[()()]}' },
+    { s: '([)]', label: '([)]' },
+    { s: '(]', label: '(]' },
+    { s: '((', label: '((' },
+    { s: ']', label: ']' },
+    { s: '([]){[]}', label: '([]){[]}' }
+  ];
+  PRESETS.forEach(p => console.assert(finalResult(build(p.s)) === reference(p.s), 'Mismatch on preset', p.s));
+  console.assert(finalResult(build('()')) === true, '() should be valid');
+  console.assert(finalResult(build('(]')) === false, '(] should be invalid');
+  console.assert(finalResult(build('([])')) === true, '([]) should be valid');
+  (function randomChecks() {
+    const alphabet = '()[]{}';
+    for (let t = 0; t < 300; t++) {
+      const n = 1 + Math.floor(Math.random() * 12);
+      let s = '';
+      for (let k = 0; k < n; k++) s += alphabet[Math.floor(Math.random() * 6)];
+      console.assert(finalResult(build(s)) === reference(s), 'Random mismatch', s);
+    }
+  })();
+
+  /* ---------- DOM ---------- */
+  const $ = (id) => document.getElementById(id);
+  const tilesEl = $('tiles'), narrEl = $('narration'), bannerEl = $('resultBanner'), badgeEl = $('kindBadge');
+  const stackBox = $('stackBox'), codeEl = $('code'), scrub = $('scrubber'), frameOut = $('frameOut');
+  const btnPlay = $('btnPlay'), btnNext = $('btnNext'), btnBack = $('btnBack'), btnRestart = $('btnRestart');
+  const moveEls = document.querySelectorAll('.move');
+
+  codeEl.innerHTML = CODE.map((l, k) =>
+    `<span class="ln" data-line="${k + 1}"><span class="n">${k + 1}</span>${l}</span>`).join('');
+  const codeLines = codeEl.querySelectorAll('.ln');
+
+  let frames = [], cur = 0, timer = null, speed = 1, currentInput = '';
+
+  const esc = (c) => c.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+  /* ---------- show: render any frame from its snapshot ---------- */
+  function show(k) {
+    cur = Math.max(0, Math.min(frames.length - 1, k));
+    const f = frames[cur];
+    const topIdx = f.stack.length ? f.stack[f.stack.length - 1].idx : -1;
+
+    // tiles
+    tilesEl.innerHTML = [...f.s].map((ch, idx) => {
+      const cls = ['tile', f.state[idx]];
+      if (idx === f.i) cls.push('current');
+      if (f.cmpTop && idx === topIdx) cls.push('top-cmp');
+      const pair = f.pairId[idx] ? `<span class="pair">#${f.pairId[idx]}</span>` : '';
+      return `<div class="cell"><span class="idx">${idx}</span>` +
+        `<div class="${cls.join(' ')}" aria-label="index ${idx}: ${esc(ch)}, ${f.state[idx]}">${esc(ch)}${pair}</div>` +
+        `<span class="ptr ${idx === f.i ? 'on' : ''}">▲ i</span></div>`;
+    }).join('');
+
+    // narration + badge + banner
+    narrEl.textContent = f.message;
+    const [bt, bc] = KIND_BADGE[f.kind];
+    badgeEl.textContent = bt;
+    badgeEl.className = 'kind-badge ' + bc;
+    if (f.result === true) { bannerEl.textContent = '✓ Valid → True'; bannerEl.className = 'result-banner ok'; }
+    else if (f.result === false) { bannerEl.textContent = '✗ Invalid → False'; bannerEl.className = 'result-banner no'; }
+    else { bannerEl.textContent = ''; bannerEl.className = 'result-banner'; }
+
+    // moves
+    const mv = KIND_TO_MOVE[f.kind];
+    moveEls.forEach(m => m.classList.toggle('active', m.dataset.move === mv));
+
+    // code lines
+    codeLines.forEach(el => el.classList.toggle('hl', f.lines.includes(+el.dataset.line)));
+
+    // stack panel
+    if (!f.stack.length) {
+      stackBox.innerHTML = '<div class="empty-note">empty</div>';
+    } else {
+      stackBox.innerHTML = f.stack.map((x, j) => {
+        const isTop = j === f.stack.length - 1;
+        const cls = ['sitem'];
+        if (isTop) cls.push('top');
+        if (isTop && f.cmpTop) cls.push('cmp');
+        if (f.badTop && (isTop || f.kind === 'end-left')) cls.push('bad');
+        return `<div class="${cls.join(' ')}"><b>${esc(x.ch)}</b><small>idx ${x.idx}</small></div>`;
+      }).join('');
+    }
+
+    // state values
+    $('stI').textContent = f.i >= 0 ? f.i : '–';
+    $('stCh').textContent = f.i >= 0 ? `'${f.s[f.i]}'` : '–';
+    $('stSize').textContent = f.stack.length;
+    $('stPairs').textContent = f.pairsClosed;
+    $('stOps').textContent = f.ops;
+    $('stRes').textContent = f.result === null ? '…' : (f.result ? 'True' : 'False');
+    const scanned = f.kind.startsWith('end') ? f.s.length : (f.i >= 0 ? f.i + 1 : 0);
+    $('progBar').style.width = (scanned / f.s.length * 100) + '%';
+
+    // controls
+    scrub.value = cur;
+    frameOut.textContent = `${cur + 1} / ${frames.length}`;
+    btnBack.disabled = cur === 0;
+    btnNext.disabled = cur === frames.length - 1;
+    if (cur === frames.length - 1) stop();
+  }
+
+  /* ---------- playback ---------- */
+  function play() {
+    if (cur >= frames.length - 1) show(0);
+    btnPlay.textContent = '❚❚ Pause';
+    btnPlay.setAttribute('aria-pressed', 'true');
+    clearInterval(timer);
+    timer = setInterval(() => {
+      if (cur >= frames.length - 1) { stop(); return; }
+      show(cur + 1);
+    }, 1000 / speed);
+  }
+  function stop() {
+    clearInterval(timer); timer = null;
+    btnPlay.textContent = '▶ Play';
+    btnPlay.setAttribute('aria-pressed', 'false');
+  }
+  const toggle = () => (timer ? stop() : play());
+
+  btnPlay.addEventListener('click', toggle);
+  btnNext.addEventListener('click', () => { stop(); show(cur + 1); });
+  btnBack.addEventListener('click', () => { stop(); show(cur - 1); });
+  btnRestart.addEventListener('click', () => { stop(); show(0); });
+  scrub.addEventListener('input', () => { stop(); show(+scrub.value); });
+
+  document.querySelectorAll('.speed button').forEach(b => b.addEventListener('click', () => {
+    speed = +b.dataset.speed;
+    document.querySelectorAll('.speed button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    if (timer) play();
+  }));
+
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.code === 'Space') { e.preventDefault(); toggle(); }
+    else if (e.key === 'ArrowRight') { e.preventDefault(); stop(); show(cur + 1); }
+    else if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); show(cur - 1); }
+    else if (e.key === 'r' || e.key === 'R') { stop(); show(0); }
+  });
+
+  /* ---------- inputs ---------- */
+  function load(s) {
+    stop();
+    currentInput = s;
+    frames = build(s);
+    console.assert(finalResult(frames) === reference(s), 'build() disagrees with reference for', s);
+    scrub.max = frames.length - 1;
+    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
+    show(0);
+  }
+
+  const presetsEl = $('presets');
+  PRESETS.forEach(p => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = `"${p.label}"`;
+    b.dataset.s = p.s;
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => { $('err').textContent = ''; load(p.s); });
+    presetsEl.appendChild(b);
+  });
+
+  $('customForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const raw = $('customInput').value.replace(/\s+/g, '');
+    const err = $('err');
+    if (!raw.length) { err.textContent = 'Please enter at least one bracket character.'; return; }
+    if (raw.length > MAX_LEN) { err.textContent = `Too long for the visualizer. Keep it to ${MAX_LEN} characters or fewer.`; return; }
+    if (!VALID_CHARS.test(raw)) {
+      const bad = [...new Set([...raw].filter(c => !'()[]{}'.includes(c)))].join(' ');
+      err.textContent = `Only ( ) [ ] { } are allowed. Invalid: ${bad}`;
+      return;
+    }
+    err.textContent = '';
+    load(raw);
+  });
+
+  load('{[()()]}');
+})();
+</script>
+</body>
+</html>
