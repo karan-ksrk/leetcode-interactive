@@ -9,6 +9,7 @@ from .config import load_config, create_default_config
 from .manifest import rebuild_problems_json, rebuild_generation_manifest
 from .agents import get_agent
 from .generation_manager import generate_one
+from .batch_manager import BatchManager
 
 
 def print_menu():
@@ -115,12 +116,70 @@ def main(argv=None):
 
         elif choice == "2":
             print("\nGenerate batches")
-            print("(Feature not yet implemented)")
-            print("Expected workflow:")
-            print("  1. Select difficulty (Easy/Medium/Hard)")
-            print("  2. Enter batch count")
-            print("  3. Enter batch size (default 5)")
-            print("  4. Select sequential/parallel mode")
+
+            print("\nDifficulty:")
+            print("  1. Easy")
+            print("  2. Medium")
+            print("  3. Hard")
+            difficulty_choice = input("Select (1-3): ").strip()
+            difficulty_map = {"1": "Easy", "2": "Medium", "3": "Hard"}
+            difficulty = difficulty_map.get(difficulty_choice)
+            if not difficulty:
+                print("Invalid choice.")
+                continue
+
+            batch_count = input("Number of batches [1]: ").strip() or "1"
+            try:
+                batch_count = int(batch_count)
+            except ValueError:
+                print("Invalid number.")
+                continue
+
+            batch_size = input("Batch size [5]: ").strip() or "5"
+            try:
+                batch_size = int(batch_size)
+            except ValueError:
+                print("Invalid number.")
+                continue
+
+            print("\nGeneration mode:")
+            print("  1. Sequential (one at a time)")
+            print("  2. Parallel (5 concurrent workers)")
+            mode_choice = input("Select (1-2) [2]: ").strip() or "2"
+            sequential = mode_choice == "1"
+
+            agent_choice = input("Select agent (claude/codex/gemini) [claude]: ").strip().lower() or "claude"
+            if agent_choice not in ["claude", "codex", "gemini"]:
+                print("Invalid agent.")
+                continue
+
+            agent = get_agent(agent_choice)
+            if not agent.is_available():
+                print(f"{agent_choice} CLI not found.")
+                continue
+
+            def agent_factory():
+                return get_agent(agent_choice)
+
+            mgr = BatchManager(config.db_path)
+            try:
+                batch = mgr.run_batch(
+                    agent_factory=agent_factory,
+                    difficulty=difficulty,
+                    batch_count=batch_count,
+                    batch_size=batch_size,
+                    sequential=sequential,
+                    max_workers=5,
+                )
+
+                if batch:
+                    print(f"\nBatch generation complete!")
+                    print(f"  Difficulty: {batch.difficulty}")
+                    print(f"  Total: {batch.selected_count} problems")
+                    print(f"  Generated: {batch.generated_count}")
+                    print(f"  Failed: {batch.failed_count}")
+            finally:
+                mgr.close()
             print("  5. Generate problems in parallel (max 5 workers)")
 
         elif choice == "3":
