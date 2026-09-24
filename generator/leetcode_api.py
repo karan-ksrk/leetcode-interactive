@@ -2,6 +2,7 @@
 
 from typing import Optional, Dict, List
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 
@@ -17,33 +18,58 @@ class LeetCodeClient:
         self.timeout = timeout
         self.session = requests.Session()
         self.session.headers.update({
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "DNT": "1",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Cache-Control": "max-age=0",
+            "Referer": "https://leetcode.com/",
         })
 
     def get_problem_by_slug(self, slug: str) -> dict:
         """Fetch a problem by slug - scrapes the problem page."""
         url = f"https://leetcode.com/problems/{slug}/"
 
-        try:
-            response = self.session.get(url, timeout=self.timeout)
-            response.raise_for_status()
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = self.session.get(url, timeout=self.timeout)
 
-            # Extract data from the HTML
-            soup = BeautifulSoup(response.text, 'html.parser')
+                # 403 Forbidden - add delay and retry
+                if response.status_code == 403:
+                    if attempt < max_retries - 1:
+                        delay = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                        print(f"  Rate limited, waiting {delay}s before retry...")
+                        time.sleep(delay)
+                        continue
+                    else:
+                        raise LeetCodeAPIError(f"LeetCode blocked request (403)")
 
-            # Try to find the problem data in the page's JavaScript data
-            # LeetCode embeds problem data in a script tag
-            script_tags = soup.find_all('script')
+                response.raise_for_status()
 
-            problem_data = self._extract_problem_from_html(response.text, slug)
+                # Extract data from the HTML
+                problem_data = self._extract_problem_from_html(response.text, slug)
 
-            if not problem_data:
-                raise LeetCodeAPIError(f"Could not extract problem data for {slug}")
+                if not problem_data:
+                    raise LeetCodeAPIError(f"Could not extract problem data for {slug}")
 
-            return problem_data
+                return problem_data
 
-        except requests.RequestException as e:
-            raise LeetCodeAPIError(f"Failed to fetch problem {slug}: {e}")
+            except requests.RequestException as e:
+                if attempt < max_retries - 1:
+                    delay = 2 ** attempt
+                    print(f"  Request failed, waiting {delay}s before retry...")
+                    time.sleep(delay)
+                else:
+                    raise LeetCodeAPIError(f"Failed to fetch problem {slug}: {e}")
+
+        raise LeetCodeAPIError(f"Failed to fetch problem {slug} after {max_retries} attempts")
 
     def get_problem_by_url(self, url: str) -> dict:
         """Parse slug from URL and fetch the problem."""
