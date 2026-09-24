@@ -7,6 +7,8 @@ from pathlib import Path
 from .database import init_db, get_connection
 from .config import load_config, create_default_config
 from .manifest import rebuild_problems_json, rebuild_generation_manifest
+from .agents import get_agent
+from .generation_manager import generate_one
 
 
 def print_menu():
@@ -74,11 +76,42 @@ def main(argv=None):
 
         if choice == "1":
             print("\nGenerate specific problem")
-            print("(Feature not yet implemented)")
-            print("Expected workflow:")
-            print("  1. Paste LeetCode problem URL")
-            print("  2. Select AI agent")
-            print("  3. Generate → Validate → Publish")
+            url = input("Paste LeetCode problem URL (or slug): ").strip()
+            if not url:
+                print("No URL provided.")
+                continue
+
+            print("\nAvailable agents:")
+            available_agents = []
+            for agent_name in ["claude", "codex", "gemini"]:
+                if config.agents.get(agent_name, {}).enabled:
+                    agent_cls = get_agent(agent_name)
+                    available = agent_cls.is_available() if hasattr(agent_cls, 'is_available') else False
+                    status = "✓ installed" if available else "✗ not found"
+                    print(f"  {agent_name}: {status}")
+                    available_agents.append((agent_name, available))
+
+            agent_choice = input("Select agent (claude/codex/gemini): ").strip().lower()
+            if agent_choice not in ["claude", "codex", "gemini"]:
+                print("Invalid agent.")
+                continue
+
+            agent = get_agent(agent_choice)
+            if not agent.is_available():
+                print(f"{agent_choice} CLI not found. Install it and try again.")
+                continue
+
+            print(f"Generating with {agent_choice}...")
+            outcome = generate_one(
+                db_path=config.db_path,
+                agent=agent,
+                url_or_slug=url,
+            )
+
+            if outcome.success:
+                print(f"\n✓ Generated: #{outcome.problem.leetcode_id} - {outcome.problem.title}")
+            else:
+                print(f"\n✗ Failed: {outcome.error}")
 
         elif choice == "2":
             print("\nGenerate batches")
