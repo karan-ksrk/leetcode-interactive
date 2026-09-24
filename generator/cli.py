@@ -88,7 +88,7 @@ def main(argv=None):
                 if config.agents.get(agent_name, {}).enabled:
                     agent_cls = get_agent(agent_name)
                     available = agent_cls.is_available() if hasattr(agent_cls, 'is_available') else False
-                    status = "✓ installed" if available else "✗ not found"
+                    status = "[OK] installed" if available else "[FAIL] not found"
                     print(f"  {agent_name}: {status}")
                     available_agents.append((agent_name, available))
 
@@ -110,9 +110,9 @@ def main(argv=None):
             )
 
             if outcome.success:
-                print(f"\n✓ Generated: #{outcome.problem.leetcode_id} - {outcome.problem.title}")
+                print(f"\n[OK] Generated: #{outcome.problem.leetcode_id} - {outcome.problem.title}")
             else:
-                print(f"\n✗ Failed: {outcome.error}")
+                print(f"\n[FAIL] Failed: {outcome.error}")
 
         elif choice == "2":
             print("\nGenerate batches")

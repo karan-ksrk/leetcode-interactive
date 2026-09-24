@@ -168,10 +168,10 @@ class BatchManager:
             with self._db_lock:
                 if outcome.success:
                     increment_batch_counter(self.conn, batch_id, "generated_count")
-                    print(f"        ✓ Success")
+                    print(f"        [OK] Success")
                 else:
                     increment_batch_counter(self.conn, batch_id, "failed_count")
-                    print(f"        ✗ Failed: {outcome.error}")
+                    print(f"        [FAIL] Failed: {outcome.error}")
 
     def _run_parallel(self, batch_id: int, candidates: list, agent_factory, max_workers: int):
         """Generate problems in parallel with ThreadPoolExecutor."""
@@ -206,17 +206,17 @@ class BatchManager:
                         if outcome.success:
                             increment_batch_counter(self.conn, batch_id, "generated_count")
                             completed += 1
-                            print(f"  ✓ #{problem_id}")
+                            print(f"  [OK] #{problem_id}")
                         else:
                             increment_batch_counter(self.conn, batch_id, "failed_count")
                             failed += 1
-                            print(f"  ✗ #{problem_id}: {outcome.error}")
+                            print(f"  [FAIL] #{problem_id}: {outcome.error}")
 
                 except Exception as e:
                     with self._db_lock:
                         increment_batch_counter(self.conn, batch_id, "failed_count")
                     failed += 1
-                    print(f"  ✗ #{problem_id}: {e}")
+                    print(f"  [FAIL] #{problem_id}: {e}")
 
         print(f"Parallel batch complete: {completed} succeeded, {failed} failed")
 

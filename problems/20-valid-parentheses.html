@@ -3,689 +3,555 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>20. Valid Parentheses — Interactive Stack Walkthrough</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>20. Valid Parentheses — Interactive Visualization</title>
 <style>
   :root {
-    --bg: #f6f4ef;
-    --surface: #ffffff;
-    --surface-2: #efece4;
-    --ink: #1c1b19;
-    --muted: #6a665d;
-    --line: #dcd7cb;
-    --accent: #e0662f;
-    --push: #2f6fe0;
-    --push-soft: #dfe9fc;
-    --compare: #c98a06;
-    --compare-soft: #fbefcf;
-    --pop: #1f9d63;
-    --pop-soft: #d8f2e5;
-    --fail: #d23b3b;
-    --fail-soft: #fbdede;
-    --final: #7c4ddb;
-    --final-soft: #ebe2fb;
-    --code-bg: #1d1f24;
-    --code-ink: #d9dce3;
-    --code-muted: #6e7480;
-    --code-hl: rgba(224, 102, 47, 0.22);
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(0,0,0,.05), 0 6px 24px rgba(0,0,0,.06);
-    --font-head: "Bricolage Grotesque", system-ui, sans-serif;
-    --font-body: "IBM Plex Sans", system-ui, sans-serif;
-    --font-mono: "JetBrains Mono", ui-monospace, monospace;
+    --bg: #f6f7fb;
+    --panel: #ffffff;
+    --border: #dfe3ec;
+    --text: #1d2433;
+    --muted: #5d6679;
+    --accent: #3b6cf6;
+    --accent-soft: #e4ebff;
+    --ok: #1e9e5a;
+    --ok-soft: #dcf5e7;
+    --bad: #d93a3a;
+    --bad-soft: #fde2e2;
+    --warn: #c98a00;
+    --warn-soft: #fff3d1;
+    --code-bg: #f3f5fa;
+    --code-hl: #fff1b8;
+    --kw: #a626a4;
+    --str: #50a14f;
+    --shadow: 0 1px 3px rgba(20, 30, 60, .08), 0 4px 16px rgba(20, 30, 60, .05);
+    --easy: #1e9e5a;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #131416;
-      --surface: #1b1d21;
-      --surface-2: #24272c;
-      --ink: #ecebe7;
-      --muted: #9a978f;
-      --line: #33363d;
-      --accent: #f07c45;
-      --push: #6a9cff;
-      --push-soft: #1e2b45;
-      --compare: #f0b429;
-      --compare-soft: #3a2f14;
-      --pop: #3fcf8e;
-      --pop-soft: #163326;
-      --fail: #ff6b6b;
-      --fail-soft: #3d1c1c;
-      --final: #a98bff;
-      --final-soft: #2a2242;
-      --code-bg: #0f1013;
-      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 6px 24px rgba(0,0,0,.3);
+      --bg: #0f1320;
+      --panel: #171c2c;
+      --border: #2a3147;
+      --text: #e6e9f2;
+      --muted: #97a0b8;
+      --accent: #6d94ff;
+      --accent-soft: #1f2a4d;
+      --ok: #3fcf82;
+      --ok-soft: #133526;
+      --bad: #ff6b6b;
+      --bad-soft: #3d1a1d;
+      --warn: #f0b43c;
+      --warn-soft: #3a2f12;
+      --code-bg: #121726;
+      --code-hl: #3a3417;
+      --kw: #d38cf5;
+      --str: #98d67c;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 4px 16px rgba(0, 0, 0, .25);
+      --easy: #3fcf82;
     }
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
   }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 28px 18px 60px; }
-  h1, h2, h3 { font-family: var(--font-head); line-height: 1.15; margin: 0; }
-  h2 { font-size: 1.3rem; margin-bottom: 12px; }
-  a { color: var(--accent); }
-  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px;
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .pill {
+    font-size: .78rem; padding: 2px 10px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted); background: var(--panel);
   }
+  .pill.easy { color: var(--easy); border-color: var(--easy); font-weight: 600; }
+  .meta a { color: var(--accent); font-size: .85rem; }
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow); padding: 16px;
+  }
+  details.desc summary { cursor: pointer; font-weight: 600; }
+  details.desc code {
+    background: var(--code-bg); padding: 1px 5px; border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  }
+  .examples-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; margin: 8px 0; }
+  .examples-list div { background: var(--code-bg); border-radius: 8px; padding: 8px 10px; font-size: .9rem; }
+  .grid {
+    display: grid; gap: 16px; margin-top: 16px;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
+  h2 { font-size: 1rem; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
 
-  /* Header */
-  header.hero { margin-bottom: 22px; }
-  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-  .chip {
-    font-family: var(--font-mono); font-size: .78rem; font-weight: 600;
-    padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line);
-    background: var(--surface);
+  .inputs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 12px; }
+  .inputs .label { font-size: .85rem; color: var(--muted); margin-right: 4px; }
+  button, .btn {
+    font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--text); padding: 6px 12px;
+    transition: background .15s, border-color .15s, transform .05s;
   }
-  .chip.easy { color: var(--pop); border-color: var(--pop); background: var(--pop-soft); }
-  .chip.tech { color: var(--push); border-color: var(--push); background: var(--push-soft); }
-  .hero h1 { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 800; letter-spacing: -.02em; }
-  .mnemonic {
-    display: inline-block; margin: 14px 0 10px; padding: 8px 14px;
-    font-family: var(--font-head); font-weight: 700; font-size: 1.15rem;
-    border-left: 4px solid var(--accent); background: var(--surface); border-radius: 0 10px 10px 0;
-  }
-  .hero p { max-width: 760px; color: var(--muted); margin: 6px 0 0; }
-  .hero code, p code, li code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
-
-  /* Moves */
-  .moves { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin-bottom: 22px; }
-  .move {
-    --c: var(--muted); --soft: var(--surface-2);
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-    padding: 14px; position: relative; transition: transform .2s, box-shadow .2s, border-color .2s;
-  }
-  .move[data-move="push"] { --c: var(--push); --soft: var(--push-soft); }
-  .move[data-move="compare"] { --c: var(--compare); --soft: var(--compare-soft); }
-  .move[data-move="pop"] { --c: var(--pop); --soft: var(--pop-soft); }
-  .move[data-move="fail"] { --c: var(--fail); --soft: var(--fail-soft); }
-  .move[data-move="final"] { --c: var(--final); --soft: var(--final-soft); }
-  .move .tag {
-    display: inline-block; font-family: var(--font-mono); font-size: .72rem; font-weight: 600;
-    color: var(--c); background: var(--soft); padding: 2px 8px; border-radius: 6px; margin-bottom: 6px;
-  }
-  .move h3 { font-size: 1rem; margin-bottom: 4px; }
-  .move .rule { font-family: var(--font-mono); font-size: .8rem; color: var(--c); margin-bottom: 6px; }
-  .move p { margin: 0; font-size: .88rem; color: var(--muted); }
-  .move.active { border-color: var(--c); box-shadow: 0 0 0 2px var(--c), var(--shadow); transform: translateY(-2px); background: var(--soft); }
-
-  /* Main grid */
-  .main { display: grid; grid-template-columns: 1.35fr 1fr; gap: 18px; align-items: start; }
-  @media (max-width: 880px) { .main { grid-template-columns: 1fr; } }
-  .col { display: grid; gap: 18px; }
-
-  /* Stage */
-  .stage-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-  .kind-badge {
-    font-family: var(--font-mono); font-size: .75rem; font-weight: 600; padding: 3px 9px; border-radius: 6px;
-    background: var(--surface-2); color: var(--muted);
-  }
-  .kind-badge.push { background: var(--push-soft); color: var(--push); }
-  .kind-badge.compare { background: var(--compare-soft); color: var(--compare); }
-  .kind-badge.pop { background: var(--pop-soft); color: var(--pop); }
-  .kind-badge.fail { background: var(--fail-soft); color: var(--fail); }
-  .kind-badge.final { background: var(--final-soft); color: var(--final); }
-  .tiles {
-    display: flex; flex-wrap: wrap; gap: 8px; padding: 18px 4px 6px; min-height: 104px;
-    justify-content: center;
-  }
-  .cell { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 44px; }
-  .idx { font-family: var(--font-mono); font-size: .7rem; color: var(--muted); }
-  .tile {
-    width: 44px; height: 50px; display: grid; place-items: center; position: relative;
-    font-family: var(--font-mono); font-size: 1.45rem; font-weight: 600;
-    background: var(--surface-2); border: 2px solid var(--line); border-radius: 10px;
-    transition: background .25s, border-color .25s, transform .25s, color .25s;
-  }
-  .tile.stack { background: var(--push-soft); border-color: var(--push); color: var(--push); }
-  .tile.matched { background: var(--pop-soft); border-color: var(--pop); color: var(--pop); }
-  .tile.bad { background: var(--fail-soft); border-color: var(--fail); color: var(--fail); }
-  .tile.current { transform: translateY(-6px); box-shadow: 0 0 0 3px var(--accent); }
-  .tile.top-cmp { box-shadow: 0 0 0 3px var(--compare); }
-  .tile .pair {
-    position: absolute; top: -9px; right: -8px; font-size: .62rem; font-weight: 600;
-    background: var(--pop); color: #fff; border-radius: 999px; padding: 1px 5px; line-height: 1.3;
-  }
-  .ptr { height: 20px; font-family: var(--font-mono); font-size: .75rem; font-weight: 600; color: var(--accent); visibility: hidden; }
-  .ptr.on { visibility: visible; }
-  .narration {
-    margin-top: 10px; padding: 12px 14px; border-radius: 10px; background: var(--surface-2);
-    font-size: .98rem; min-height: 3.2em; border-left: 4px solid var(--accent);
-  }
-  .result-banner { margin-top: 10px; font-family: var(--font-head); font-weight: 700; font-size: 1.1rem; min-height: 1.4em; }
-  .result-banner.ok { color: var(--pop); }
-  .result-banner.no { color: var(--fail); }
-
-  /* Controls */
-  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
-  button {
-    font-family: var(--font-body); font-size: .9rem; font-weight: 600; cursor: pointer;
-    padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line);
-    background: var(--surface); color: var(--ink); transition: background .15s, border-color .15s;
-  }
-  button:hover:not(:disabled) { border-color: var(--accent); }
-  button:disabled { opacity: .45; cursor: not-allowed; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; min-width: 88px; }
-  .speed { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-  .speed button { border: 0; border-radius: 0; padding: 8px 10px; font-family: var(--font-mono); font-size: .8rem; }
-  .speed button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-  .scrub { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-  .scrub input { flex: 1; accent-color: var(--accent); }
-  .scrub output { font-family: var(--font-mono); font-size: .8rem; color: var(--muted); min-width: 64px; text-align: right; }
-  .kbd-hint { font-size: .78rem; color: var(--muted); margin-top: 8px; }
-  kbd { font-family: var(--font-mono); font-size: .75rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface-2); }
-
-  /* State panel */
-  .state-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  .stackbox {
-    grid-row: span 2; border: 2px solid var(--line); border-top: 0; border-radius: 0 0 12px 12px;
-    min-height: 220px; padding: 8px; display: flex; flex-direction: column-reverse; gap: 6px;
-    background: var(--surface-2);
-  }
-  .stack-label { font-size: .8rem; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
-  .sitem {
-    display: flex; justify-content: space-between; align-items: center;
-    font-family: var(--font-mono); padding: 6px 10px; border-radius: 8px;
-    background: var(--push-soft); color: var(--push); border: 2px solid var(--push);
-    animation: drop .25s ease-out;
-  }
-  .sitem b { font-size: 1.2rem; }
-  .sitem small { font-size: .7rem; opacity: .8; }
-  .sitem.top::after { content: "top"; font-size: .65rem; font-weight: 600; margin-left: 6px; }
-  .sitem.cmp { background: var(--compare-soft); color: var(--compare); border-color: var(--compare); }
-  .sitem.bad { background: var(--fail-soft); color: var(--fail); border-color: var(--fail); }
-  .empty-note { color: var(--muted); font-size: .8rem; text-align: center; margin: auto 0; }
-  @keyframes drop { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
-  .kv { font-size: .88rem; }
-  .kv div { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed var(--line); }
-  .kv dt { color: var(--muted); }
-  .kv dd { margin: 0; font-family: var(--font-mono); font-weight: 600; }
-  .pairs-map { font-family: var(--font-mono); font-size: .82rem; display: grid; gap: 4px; }
-  .pairs-map span { background: var(--surface-2); padding: 3px 8px; border-radius: 6px; }
-  .progress { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; margin-top: 8px; }
-  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
-
-  /* Code */
-  .code {
-    background: var(--code-bg); color: var(--code-ink); border-radius: 12px; padding: 12px 0;
-    font-family: var(--font-mono); font-size: .82rem; overflow-x: auto; margin: 0;
-  }
-  .code .ln { display: block; padding: 1px 14px 1px 0; white-space: pre; border-left: 3px solid transparent; transition: background .2s; }
-  .code .ln .n { display: inline-block; width: 2.6em; text-align: right; padding-right: 1em; color: var(--code-muted); user-select: none; }
-  .code .ln.hl { background: var(--code-hl); border-left-color: var(--accent); }
-  .kw { color: #c792ea; } .str { color: #c3e88d; } .fn { color: #82aaff; } .bi { color: #ffcb6b; } .cm { color: #6e7480; font-style: italic; }
-
-  /* Why + Try */
-  .why ul { margin: 8px 0 0; padding-left: 20px; }
-  .why li { margin-bottom: 6px; }
-  .cmp-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .88rem; }
-  .cmp-table th, .cmp-table td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
-  .cmp-table th { font-family: var(--font-head); }
-  .cmp-table td.mono { font-family: var(--font-mono); }
-  .presets { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 14px; }
-  .presets button { font-family: var(--font-mono); font-size: .85rem; }
-  .presets button[aria-pressed="true"] { border-color: var(--accent); background: var(--surface-2); }
-  .custom { display: flex; gap: 8px; flex-wrap: wrap; }
+  button:hover { border-color: var(--accent); }
+  button:active { transform: translateY(1px); }
+  button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.ex { font-family: ui-monospace, Consolas, monospace; font-size: .9rem; padding: 4px 10px; }
+  button.ex[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .custom { display: flex; gap: 6px; flex: 1 1 220px; }
   .custom input {
-    flex: 1; min-width: 160px; font-family: var(--font-mono); font-size: .95rem;
-    padding: 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+    flex: 1; min-width: 0; font: inherit; font-family: ui-monospace, Consolas, monospace;
+    padding: 5px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--code-bg); color: var(--text);
   }
-  .error { color: var(--fail); font-size: .85rem; min-height: 1.3em; margin-top: 6px; }
-  .section-gap { margin-top: 18px; }
+  .custom input[aria-invalid="true"] { border-color: var(--bad); }
+  .err { color: var(--bad); font-size: .8rem; min-height: 1.1em; width: 100%; }
 
-  @media (max-width: 480px) {
-    .wrap { padding: 18px 10px 40px; }
-    .card { padding: 14px; }
-    .cell, .tile { width: 36px; }
-    .tile { height: 44px; font-size: 1.2rem; }
-    .state-grid { grid-template-columns: 1fr; }
-    .stackbox { grid-row: auto; min-height: 150px; }
+  .strip-wrap { overflow-x: auto; padding: 22px 2px 6px; }
+  .strip { display: flex; gap: 6px; min-width: min-content; }
+  .cell { display: flex; flex-direction: column; align-items: center; gap: 2px; position: relative; }
+  .ch {
+    width: 42px; height: 48px; display: grid; place-items: center;
+    font-family: ui-monospace, Consolas, monospace; font-size: 1.5rem; font-weight: 700;
+    border: 2px solid var(--border); border-radius: 8px; background: var(--code-bg);
+    transition: background .25s, border-color .25s, transform .25s, opacity .25s;
   }
+  .idx { font-size: .7rem; color: var(--muted); font-family: ui-monospace, Consolas, monospace; }
+  .cell.done .ch { opacity: .55; }
+  .cell.onstack .ch { border-color: var(--warn); background: var(--warn-soft); opacity: 1; }
+  .cell.matched .ch { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); opacity: 1; }
+  .cell.current .ch { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-4px); opacity: 1; box-shadow: 0 4px 12px rgba(59,108,246,.25); }
+  .cell.bad .ch { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); opacity: 1; }
+  .cell.current::before {
+    content: "i"; position: absolute; top: -20px; font-size: .75rem; font-weight: 700;
+    color: var(--accent); font-family: ui-monospace, Consolas, monospace;
+  }
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: .78rem; color: var(--muted); margin-top: 8px; }
+  .legend span::before {
+    content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 3px;
+    margin-right: 5px; vertical-align: -1px; border: 2px solid var(--c); background: var(--b);
+  }
+
+  .viz-row { display: grid; grid-template-columns: 150px 1fr; gap: 16px; margin-top: 14px; }
+  @media (max-width: 480px) { .viz-row { grid-template-columns: 1fr; } }
+  .stack-box {
+    border: 2px solid var(--border); border-top: none; border-radius: 0 0 12px 12px;
+    min-height: 220px; max-height: 320px; overflow-y: auto; padding: 8px;
+    display: flex; flex-direction: column-reverse; gap: 6px; background: var(--code-bg);
+  }
+  .stack-title { text-align: center; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+  .empty { margin: auto; color: var(--muted); font-size: .85rem; font-style: italic; }
+  .item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 10px; border-radius: 8px; border: 2px solid var(--warn); background: var(--warn-soft);
+    font-family: ui-monospace, Consolas, monospace; font-weight: 700; font-size: 1.15rem;
+  }
+  .item small { font-size: .7rem; color: var(--muted); font-weight: 400; }
+  .item.top { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--warn); }
+  .item.hi { border-color: var(--ok); background: var(--ok-soft); box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--ok); }
+  .item.badtop, .item.leftover { border-color: var(--bad); background: var(--bad-soft); }
+  .item.enter { animation: drop .35s ease-out; }
+  @keyframes drop { from { transform: translateY(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .popped {
+    font-family: ui-monospace, Consolas, monospace; font-size: .8rem; color: var(--ok);
+    text-align: center; min-height: 1.3em; margin-top: 4px;
+  }
+  .popped.show { animation: fly .6s ease-out; }
+  @keyframes fly { from { transform: translateY(10px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .vars { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-content: start; font-size: .92rem; }
+  .vars dt { color: var(--muted); font-family: ui-monospace, Consolas, monospace; }
+  .vars dd { margin: 0; font-family: ui-monospace, Consolas, monospace; font-weight: 600; word-break: break-all; }
+  .vars dd.changed { animation: flash .6s; }
+  @keyframes flash { 0% { background: var(--code-hl); } 100% { background: transparent; } }
+  .result {
+    margin-top: 12px; padding: 10px 12px; border-radius: 10px; font-weight: 700; text-align: center;
+    border: 2px dashed var(--border); color: var(--muted);
+  }
+  .result.true { border: 2px solid var(--ok); background: var(--ok-soft); color: var(--ok); }
+  .result.false { border: 2px solid var(--bad); background: var(--bad-soft); color: var(--bad); }
+
+  .narration {
+    margin-top: 14px; padding: 12px 14px; border-left: 4px solid var(--accent);
+    background: var(--accent-soft); border-radius: 6px; min-height: 3.2em;
+  }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; }
+  .controls button { min-width: 84px; }
+  .controls button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .controls .spacer { flex: 1; }
+  .controls label { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .scrub { width: 100%; margin-top: 10px; accent-color: var(--accent); }
+  .stepinfo { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .kbd { font-size: .78rem; color: var(--muted); margin-top: 6px; }
+  kbd {
+    font-family: ui-monospace, Consolas, monospace; font-size: .75rem; padding: 1px 6px;
+    border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; background: var(--code-bg);
+  }
+
+  pre.code {
+    margin: 0; background: var(--code-bg); border-radius: 10px; padding: 10px 0;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .86rem; overflow-x: auto;
+  }
+  .line { display: flex; padding: 1px 12px 1px 0; border-left: 4px solid transparent; transition: background .2s; }
+  .line .ln { width: 36px; text-align: right; padding-right: 12px; color: var(--muted); user-select: none; flex-shrink: 0; }
+  .line.active { background: var(--code-hl); border-left-color: var(--accent); }
+  .line.active .ln { color: var(--text); font-weight: 700; }
+  .kw { color: var(--kw); font-weight: 600; }
+  .st { color: var(--str); }
+  .complexity { margin-top: 12px; font-size: .88rem; color: var(--muted); }
+  .complexity b { color: var(--text); }
+
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition: none !important; animation: none !important; }
-    .tile.current, .move.active { transform: none; }
+    *, *::before, *::after { animation: none !important; transition: none !important; }
   }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <header class="hero">
+  <header>
+    <h1>20. Valid Parentheses</h1>
     <div class="meta">
-      <span class="chip">LeetCode #20</span>
-      <span class="chip easy">Easy</span>
-      <span class="chip tech">Stack</span>
-      <span class="chip">String</span>
+      <span class="pill easy">Easy</span>
+      <span class="pill">String</span>
+      <span class="pill">Stack</span>
+      <span class="pill">Bracket Sequences</span>
+      <a href="https://leetcode.com/problems/valid-parentheses/" target="_blank" rel="noopener">View on LeetCode ↗</a>
     </div>
-    <h1>Valid Parentheses</h1>
-    <div class="mnemonic">“Openers wait on the stack; every closer must match the top.”</div>
-    <p>
-      You get a string <code>s</code> made only of <code>( ) [ ] { }</code>. It is <strong>valid</strong> when every opening
-      bracket is closed by the same type, brackets close in the right order (the most recent opener closes first),
-      and every closer has a matching opener. Return <code>true</code> or <code>false</code>.
-    </p>
   </header>
 
-  <section aria-label="Algorithm moves" class="moves" id="moves">
-    <article class="move" data-move="push">
-      <span class="tag">MOVE 1 · PUSH</span>
-      <h3>Opener? Push it</h3>
-      <div class="rule">ch in "([{" → stack.append(ch)</div>
-      <p>An opener can't be judged yet. Park it on the stack until its partner shows up.</p>
-    </article>
-    <article class="move" data-move="compare">
-      <span class="tag">MOVE 2 · PEEK</span>
-      <h3>Closer? Check the top</h3>
-      <div class="rule">stack[-1] == pairs[ch] ?</div>
-      <p>Only the most recent unclosed opener is allowed to close now. Compare it with this closer.</p>
-    </article>
-    <article class="move" data-move="pop">
-      <span class="tag">MOVE 3 · POP</span>
-      <h3>Match → pop</h3>
-      <div class="rule">stack.pop()</div>
-      <p>The pair is done. Removing it shows the next opener that still needs closing.</p>
-    </article>
-    <article class="move" data-move="fail">
-      <span class="tag">MOVE 4 · FAIL FAST</span>
-      <h3>Empty or wrong → false</h3>
-      <div class="rule">not stack or top ≠ pair → return False</div>
-      <p>A closer with nothing to close, or the wrong bracket type, fails right away.</p>
-    </article>
-    <article class="move" data-move="final">
-      <span class="tag">MOVE 5 · FINAL</span>
-      <h3>Stack empty at end?</h3>
-      <div class="rule">return not stack</div>
-      <p>Any openers still on the stack were never closed, so the string is invalid.</p>
-    </article>
+  <section class="panel">
+    <details class="desc" open>
+      <summary>Problem description</summary>
+      <p>Given a string <code>s</code> containing just the characters <code>'('</code>, <code>')'</code>, <code>'{'</code>, <code>'}'</code>, <code>'['</code> and <code>']'</code>, determine if the input string is valid.</p>
+      <p>An input string is valid if:</p>
+      <ol>
+        <li>Open brackets must be closed by the same type of brackets.</li>
+        <li>Open brackets must be closed in the correct order.</li>
+        <li>Every close bracket has a corresponding open bracket of the same type.</li>
+      </ol>
+      <div class="examples-list">
+        <div><b>Ex 1:</b> <code>s = "()"</code> → <code>true</code></div>
+        <div><b>Ex 2:</b> <code>s = "()[]{}"</code> → <code>true</code></div>
+        <div><b>Ex 3:</b> <code>s = "(]"</code> → <code>false</code></div>
+        <div><b>Ex 4:</b> <code>s = "([])"</code> → <code>true</code></div>
+        <div><b>Ex 5:</b> <code>s = "([)]"</code> → <code>false</code></div>
+      </div>
+      <p><b>Constraints:</b> <code>1 &lt;= s.length &lt;= 10<sup>4</sup></code>; <code>s</code> consists of parentheses only <code>'()[]{}'</code>.</p>
+    </details>
   </section>
 
-  <div class="main">
-    <div class="col">
-      <section class="card" aria-labelledby="stage-title">
-        <div class="stage-head">
-          <h2 id="stage-title">Scan the string</h2>
-          <span class="kind-badge" id="kindBadge">init</span>
-        </div>
-        <div class="tiles" id="tiles" role="img" aria-label="Characters of the input string"></div>
-        <div class="narration" id="narration" aria-live="polite"></div>
-        <div class="result-banner" id="resultBanner"></div>
-
-        <div class="controls" role="group" aria-label="Playback controls">
-          <button id="btnRestart" title="Restart (R)">⟲ Restart</button>
-          <button id="btnBack" title="Back (←)">◀ Back</button>
-          <button id="btnPlay" class="primary" title="Play/Pause (Space)">▶ Play</button>
-          <button id="btnNext" title="Next (→)">Next ▶</button>
-          <div class="speed" role="group" aria-label="Playback speed">
-            <button data-speed="0.5" aria-pressed="false">0.5×</button>
-            <button data-speed="1" aria-pressed="true">1×</button>
-            <button data-speed="2" aria-pressed="false">2×</button>
-          </div>
-        </div>
-        <div class="scrub">
-          <label for="scrubber" class="stack-label" style="margin:0">Frame</label>
-          <input type="range" id="scrubber" min="0" max="0" value="0">
-          <output id="frameOut" for="scrubber">0 / 0</output>
-        </div>
-        <div class="kbd-hint"><kbd>Space</kbd> play/pause · <kbd>←</kbd><kbd>→</kbd> step · <kbd>R</kbd> restart</div>
-      </section>
-
-      <section class="card why" aria-labelledby="why-title">
-        <h2 id="why-title">Why it's fast</h2>
-        <p><strong>Key insight:</strong> brackets nest, so the last opener must close first (last in, first out).
-          A stack follows that rule directly. Each character gets pushed at most once and popped at most once, so a single
-          pass is enough.</p>
-        <ul>
-          <li><strong>Time:</strong> <code>O(n)</code>. One pass, O(1) work per character.</li>
-          <li><strong>Space:</strong> <code>O(n)</code>. In the worst case (e.g. <code>"(((("</code>) every character is on the stack.</li>
-          <li><strong>Early exit:</strong> a mismatch stops the scan immediately. Odd-length strings can't be valid either.</li>
-        </ul>
-        <table class="cmp-table">
-          <thead><tr><th>Approach</th><th>Time</th><th>Space</th></tr></thead>
-          <tbody>
-            <tr><td>Brute force: repeatedly delete <code>()</code>, <code>[]</code>, <code>{}</code></td><td class="mono">O(n²)</td><td class="mono">O(n)</td></tr>
-            <tr><td><strong>Stack scan</strong></td><td class="mono">O(n)</td><td class="mono">O(n)</td></tr>
-          </tbody>
-        </table>
-      </section>
-    </div>
-
-    <div class="col">
-      <section class="card" aria-labelledby="state-title">
-        <h2 id="state-title">State</h2>
-        <div class="state-grid">
-          <div>
-            <div class="stack-label">stack (top ↑)</div>
-            <div class="stackbox" id="stackBox" aria-label="Stack contents"></div>
-          </div>
-          <dl class="kv" style="margin:0">
-            <div><dt>index i</dt><dd id="stI">–</dd></div>
-            <div><dt>char</dt><dd id="stCh">–</dd></div>
-            <div><dt>stack size</dt><dd id="stSize">0</dd></div>
-            <div><dt>pairs closed</dt><dd id="stPairs">0</dd></div>
-            <div><dt>operations</dt><dd id="stOps">0</dd></div>
-            <div><dt>result</dt><dd id="stRes">…</dd></div>
-          </dl>
-          <div>
-            <div class="stack-label">pairs map</div>
-            <div class="pairs-map">
-              <span>')' → '('</span><span>']' → '['</span><span>'}' → '{'</span>
-            </div>
-            <div class="stack-label" style="margin-top:10px">progress</div>
-            <div class="progress" aria-hidden="true"><div id="progBar"></div></div>
-          </div>
-        </div>
-      </section>
-
-      <section class="card" aria-labelledby="code-title">
-        <h2 id="code-title">Python solution</h2>
-        <pre class="code" id="code" aria-label="Python solution with current lines highlighted"></pre>
-      </section>
-
-      <section class="card" aria-labelledby="try-title">
-        <h2 id="try-title">Try another example</h2>
-        <div class="presets" id="presets" role="group" aria-label="Preset examples"></div>
-        <form class="custom" id="customForm" novalidate>
-          <label for="customInput" class="stack-label" style="width:100%;margin:0">Custom string (only <code>()[]{}</code>, 1–40 chars)</label>
-          <input id="customInput" type="text" autocomplete="off" spellcheck="false" placeholder="e.g. {[()]}" aria-describedby="err">
-          <button type="submit" class="primary">Run</button>
+  <div class="grid">
+    <section class="panel" aria-labelledby="viz-h">
+      <h2 id="viz-h">Visualization</h2>
+      <div class="inputs" role="group" aria-label="Choose input string">
+        <span class="label">Input:</span>
+        <div id="exButtons" style="display:contents"></div>
+        <form class="custom" id="customForm">
+          <label for="customInput" class="sr-only">Custom bracket string</label>
+          <input id="customInput" type="text" maxlength="30" placeholder="custom e.g. {[()]}" autocomplete="off" spellcheck="false">
+          <button type="submit">Run</button>
         </form>
-        <div class="error" id="err" role="alert"></div>
-      </section>
-    </div>
+        <div class="err" id="err" role="alert"></div>
+      </div>
+
+      <div class="strip-wrap"><div class="strip" id="strip" aria-label="Input string characters"></div></div>
+      <div class="legend" aria-hidden="true">
+        <span style="--c:var(--accent);--b:var(--accent-soft)">current</span>
+        <span style="--c:var(--warn);--b:var(--warn-soft)">on stack</span>
+        <span style="--c:var(--ok);--b:var(--ok-soft)">matched</span>
+        <span style="--c:var(--bad);--b:var(--bad-soft)">mismatch</span>
+      </div>
+
+      <div class="viz-row">
+        <div>
+          <div class="stack-title">stack (top ↑)</div>
+          <div class="stack-box" id="stack" aria-label="Stack contents"></div>
+          <div class="popped" id="popped" aria-hidden="true"></div>
+        </div>
+        <div>
+          <dl class="vars" id="vars"></dl>
+          <div class="result" id="result">result: —</div>
+        </div>
+      </div>
+
+      <div class="narration" id="narration" aria-live="polite" aria-atomic="true"></div>
+
+      <div class="controls" role="toolbar" aria-label="Playback controls">
+        <button id="btnRestart" aria-label="Restart (R)">⟲ Restart</button>
+        <button id="btnBack" aria-label="Previous step (Left arrow)">◀ Back</button>
+        <button id="btnPlay" class="primary" aria-label="Play (Space)" aria-pressed="false">▶ Play</button>
+        <button id="btnNext" aria-label="Next step (Right arrow)">Next ▶</button>
+        <span class="spacer"></span>
+        <label>Speed <input type="range" id="speed" min="1" max="5" value="3" aria-label="Playback speed"></label>
+      </div>
+      <input type="range" class="scrub" id="scrub" min="0" max="0" value="0" aria-label="Step scrubber">
+      <div class="stepinfo" id="stepinfo"></div>
+      <div class="kbd"><kbd>Space</kbd> play/pause · <kbd>←</kbd>/<kbd>→</kbd> step · <kbd>R</kbd> restart</div>
+    </section>
+
+    <section class="panel" aria-labelledby="code-h">
+      <h2 id="code-h">Python Solution</h2>
+      <pre class="code" id="code" aria-label="Python solution code"></pre>
+      <div class="complexity">
+        <p><b>Idea:</b> Push every opening bracket. On a closing bracket, the most recent unclosed opener (stack top) must be its partner — otherwise the string is invalid. At the end, the stack must be empty.</p>
+        <p><b>Time:</b> O(n) — each character pushed/popped at most once.<br><b>Space:</b> O(n) — stack can hold up to n openers.</p>
+      </div>
+    </section>
   </div>
 </div>
 
 <script>
-(() => {
+(function () {
   "use strict";
 
-  const PAIRS = { ')': '(', ']': '[', '}': '{' };
-  const CLOSE_OF = { '(': ')', '[': ']', '{': '}' };
-  const VALID_CHARS = /^[()\[\]{}]+$/;
-  const MAX_LEN = 40;
-
   const CODE = [
-    '<span class="kw">class</span> <span class="fn">Solution</span>:',
-    '    <span class="kw">def</span> <span class="fn">isValid</span>(self, s: <span class="bi">str</span>) -&gt; <span class="bi">bool</span>:',
-    '        pairs = {<span class="str">\')\'</span>: <span class="str">\'(\'</span>, <span class="str">\']\'</span>: <span class="str">\'[\'</span>, <span class="str">\'}\'</span>: <span class="str">\'{\'</span>}',
-    '        stack = []',
-    '        <span class="kw">for</span> ch <span class="kw">in</span> s:',
-    '            <span class="kw">if</span> ch <span class="kw">in</span> pairs:                <span class="cm"># closer</span>',
-    '                <span class="kw">if</span> <span class="kw">not</span> stack <span class="kw">or</span> stack[-1] != pairs[ch]:',
-    '                    <span class="kw">return</span> <span class="kw">False</span>',
-    '                stack.pop()',
-    '            <span class="kw">else</span>:                          <span class="cm"># opener</span>',
-    '                stack.append(ch)',
-    '        <span class="kw">return</span> <span class="kw">not</span> stack'
+    "class Solution:",
+    "    def isValid(self, s: str) -> bool:",
+    "        pairs = {')': '(', ']': '[', '}': '{'}",
+    "        stack = []",
+    "        for ch in s:",
+    "            if ch in pairs:",
+    "                if not stack or stack[-1] != pairs[ch]:",
+    "                    return False",
+    "                stack.pop()",
+    "            else:",
+    "                stack.append(ch)",
+    "        return not stack"
   ];
+  const PAIRS = { ")": "(", "]": "[", "}": "{" };
+  const EXAMPLES = ["()", "()[]{}", "(]", "([])", "([)]", "{[()()]}", "(("];
+  const SPEEDS = [1600, 1100, 750, 450, 220];
 
-  const KIND_TO_MOVE = {
-    init: null, push: 'push', compare: 'compare', pop: 'pop',
-    fail: 'fail', 'end-ok': 'final', 'end-left': 'final'
+  const $ = id => document.getElementById(id);
+  const els = {
+    strip: $("strip"), stack: $("stack"), popped: $("popped"), vars: $("vars"),
+    result: $("result"), narration: $("narration"), code: $("code"),
+    play: $("btnPlay"), next: $("btnNext"), back: $("btnBack"), restart: $("btnRestart"),
+    speed: $("speed"), scrub: $("scrub"), stepinfo: $("stepinfo"),
+    exButtons: $("exButtons"), form: $("customForm"), input: $("customInput"), err: $("err")
   };
-  const KIND_BADGE = {
-    init: ['start', ''], push: ['push', 'push'], compare: ['peek', 'compare'], pop: ['pop', 'pop'],
-    fail: ['fail', 'fail'], 'end-ok': ['done ✓', 'final'], 'end-left': ['leftover', 'final']
-  };
 
-  /* ---------- build: run the real algorithm, capture snapshots ---------- */
-  function build(s) {
-    const frames = [];
-    const stack = [];
-    const state = new Array(s.length).fill('pending');
-    const pairId = new Array(s.length).fill(0);
-    let ops = 0, pairsClosed = 0;
+  let s = "";
+  let steps = [];
+  let cur = 0;
+  let timer = null;
+  let prevVars = {};
 
-    const snap = (o) => frames.push(Object.assign({
-      s, i: -1, ops, pairsClosed,
-      stack: stack.map(x => ({ ...x })),
-      state: state.slice(), pairId: pairId.slice(),
-      result: null, lines: [], cmpTop: false, badTop: false
-    }, o));
+  /* ---------- code rendering ---------- */
+  function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function highlight(line) {
+    return esc(line).replace(/('[^']*')|\b(class|def|for|in|if|not|return|else|self|str|bool|False|True)\b/g,
+      (m, str, kw) => str ? '<span class="st">' + str + "</span>" : '<span class="kw">' + kw + "</span>");
+  }
+  els.code.innerHTML = CODE.map((l, i) =>
+    '<div class="line" data-line="' + (i + 1) + '"><span class="ln">' + (i + 1) + "</span><span>" + highlight(l) + "</span></div>"
+  ).join("");
+  const codeLines = els.code.querySelectorAll(".line");
 
-    snap({ kind: 'init', lines: [3, 4],
-      message: `Start with an empty stack. Scan "${s}" left to right, one character at a time.` });
+  /* ---------- step generation ---------- */
+  function build(str) {
+    const st = [];
+    const matched = new Set();
+    const out = [];
+    const snap = (line, i, msg, extra) => out.push(Object.assign({
+      line, i, msg,
+      stack: st.map(x => ({ ch: x.ch, idx: x.idx })),
+      matched: new Set(matched)
+    }, extra || {}));
 
-    for (let i = 0; i < s.length; i++) {
-      const ch = s[i];
-      ops++;
-      if (!(ch in PAIRS)) {
-        stack.push({ ch, idx: i });
-        state[i] = 'stack';
-        snap({ kind: 'push', i, ops, lines: [5, 6, 10, 11],
-          message: `s[${i}] = '${ch}' is an opener → push it. It waits for a '${CLOSE_OF[ch]}'.` });
-        continue;
+    snap(3, -1, "Build a lookup from each closing bracket to its matching opening bracket.");
+    snap(4, -1, "Start with an empty stack to hold unmatched opening brackets.");
+    for (let i = 0; i < str.length; i++) {
+      const ch = str[i];
+      snap(5, i, "Read s[" + i + "] = '" + ch + "'.");
+      if (ch in PAIRS) {
+        snap(6, i, "'" + ch + "' is a closing bracket; it needs '" + PAIRS[ch] + "' on top of the stack.");
+        const top = st.length ? st[st.length - 1] : null;
+        if (!top || top.ch !== PAIRS[ch]) {
+          const why = top
+            ? "Top of stack is '" + top.ch + "', but '" + ch + "' needs '" + PAIRS[ch] + "'. Mismatch!"
+            : "The stack is empty — there is no opening bracket for '" + ch + "' to close.";
+          snap(7, i, why, { bad: i, badTop: top ? top.idx : -1 });
+          snap(8, i, "Return False — the string is not valid.", { bad: i, badTop: top ? top.idx : -1, result: false });
+          return out;
+        }
+        snap(7, i, "Top of stack is '" + top.ch + "' — it matches '" + ch + "'.", { hiTop: true });
+        st.pop();
+        matched.add(i); matched.add(top.idx);
+        snap(9, i, "Pop '" + top.ch + "'. Brackets s[" + top.idx + "] and s[" + i + "] form a pair.", { popped: top.ch + ch });
+      } else {
+        snap(6, i, "'" + ch + "' is an opening bracket (not a key in pairs).");
+        st.push({ ch, idx: i });
+        snap(11, i, "Push '" + ch + "' onto the stack; it waits for its closing partner.", { pushed: true });
       }
-      const need = PAIRS[ch];
-      if (stack.length === 0) {
-        state[i] = 'bad';
-        snap({ kind: 'fail', i, ops, result: false, lines: [5, 6, 7, 8],
-          message: `s[${i}] = '${ch}' is a closer, but the stack is empty. Nothing to close → return False.` });
-        return frames;
-      }
-      const top = stack[stack.length - 1];
-      snap({ kind: 'compare', i, ops, cmpTop: true, lines: [5, 6, 7],
-        message: `s[${i}] = '${ch}' is a closer. It needs '${need}' on top, and the top is '${top.ch}' (index ${top.idx}).` });
-      if (top.ch !== need) {
-        state[i] = 'bad';
-        state[top.idx] = 'bad';
-        snap({ kind: 'fail', i, ops, result: false, badTop: true, lines: [7, 8],
-          message: `Mismatch: '${top.ch}' can't be closed by '${ch}'. The nesting is broken → return False.` });
-        return frames;
-      }
-      stack.pop();
-      pairsClosed++;
-      state[i] = 'matched'; state[top.idx] = 'matched';
-      pairId[i] = pairsClosed; pairId[top.idx] = pairsClosed;
-      snap({ kind: 'pop', i, ops, pairsClosed, lines: [9],
-        message: `Match! Pop '${top.ch}'. Pair #${pairsClosed} (indices ${top.idx}↔${i}) is closed.` +
-          (stack.length ? ` The new top is '${stack[stack.length - 1].ch}'.` : ' The stack is now empty.') });
     }
-
-    const ok = stack.length === 0;
-    if (!ok) stack.forEach(x => { state[x.idx] = 'bad'; });
-    snap({ kind: ok ? 'end-ok' : 'end-left', result: ok, lines: [12], badTop: !ok,
-      message: ok
-        ? `Scan finished and the stack is empty. Every opener found its partner → return True.`
-        : `Scan finished, but ${stack.length} opener${stack.length > 1 ? 's' : ''} (${stack.map(x => `'${x.ch}'`).join(', ')}) never closed → return False.` });
-    return frames;
+    snap(5, str.length, "All characters processed — the loop ends.");
+    const ok = st.length === 0;
+    snap(12, str.length,
+      ok ? "Stack is empty — every bracket was closed. Return True."
+         : "Stack still holds " + st.length + " unclosed bracket" + (st.length > 1 ? "s" : "") + ". Return False.",
+      { result: ok, leftover: !ok });
+    return out;
   }
 
-  // Independent reference (brute-force reduction) for self-checks
-  function reference(s) {
-    let prev;
-    do { prev = s; s = s.replace(/\(\)|\[\]|\{\}/g, ''); } while (s !== prev);
-    return s.length === 0;
-  }
-  const finalResult = (fr) => fr[fr.length - 1].result;
+  /* ---------- rendering ---------- */
+  function render() {
+    const step = steps[cur];
+    const onStack = new Set(step.stack.map(x => x.idx));
+    const leftoverIdx = step.leftover ? onStack : new Set();
 
-  /* ---------- self-checks ---------- */
-  const PRESETS = [
-    { s: '()[]{}', label: '()[]{}' },
-    { s: '{[()()]}', label: '{[()()]}' },
-    { s: '([)]', label: '([)]' },
-    { s: '(]', label: '(]' },
-    { s: '((', label: '((' },
-    { s: ']', label: ']' },
-    { s: '([]){[]}', label: '([]){[]}' }
-  ];
-  PRESETS.forEach(p => console.assert(finalResult(build(p.s)) === reference(p.s), 'Mismatch on preset', p.s));
-  console.assert(finalResult(build('()')) === true, '() should be valid');
-  console.assert(finalResult(build('(]')) === false, '(] should be invalid');
-  console.assert(finalResult(build('([])')) === true, '([]) should be valid');
-  (function randomChecks() {
-    const alphabet = '()[]{}';
-    for (let t = 0; t < 300; t++) {
-      const n = 1 + Math.floor(Math.random() * 12);
-      let s = '';
-      for (let k = 0; k < n; k++) s += alphabet[Math.floor(Math.random() * 6)];
-      console.assert(finalResult(build(s)) === reference(s), 'Random mismatch', s);
+    // character strip
+    els.strip.innerHTML = "";
+    for (let j = 0; j < s.length; j++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      if (step.i >= 0 && j < step.i) cell.classList.add("done");
+      if (onStack.has(j)) cell.classList.add("onstack");
+      if (step.matched.has(j)) cell.classList.add("matched");
+      if (j === step.i) cell.classList.add("current");
+      if (j === step.bad || j === step.badTop || leftoverIdx.has(j)) cell.classList.add("bad");
+      cell.innerHTML = '<div class="ch">' + s[j] + '</div><div class="idx">' + j + "</div>";
+      els.strip.appendChild(cell);
     }
-  })();
+    const curCell = els.strip.children[step.i];
+    if (curCell && curCell.scrollIntoView) curCell.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
 
-  /* ---------- DOM ---------- */
-  const $ = (id) => document.getElementById(id);
-  const tilesEl = $('tiles'), narrEl = $('narration'), bannerEl = $('resultBanner'), badgeEl = $('kindBadge');
-  const stackBox = $('stackBox'), codeEl = $('code'), scrub = $('scrubber'), frameOut = $('frameOut');
-  const btnPlay = $('btnPlay'), btnNext = $('btnNext'), btnBack = $('btnBack'), btnRestart = $('btnRestart');
-  const moveEls = document.querySelectorAll('.move');
-
-  codeEl.innerHTML = CODE.map((l, k) =>
-    `<span class="ln" data-line="${k + 1}"><span class="n">${k + 1}</span>${l}</span>`).join('');
-  const codeLines = codeEl.querySelectorAll('.ln');
-
-  let frames = [], cur = 0, timer = null, speed = 1, currentInput = '';
-
-  const esc = (c) => c.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-
-  /* ---------- show: render any frame from its snapshot ---------- */
-  function show(k) {
-    cur = Math.max(0, Math.min(frames.length - 1, k));
-    const f = frames[cur];
-    const topIdx = f.stack.length ? f.stack[f.stack.length - 1].idx : -1;
-
-    // tiles
-    tilesEl.innerHTML = [...f.s].map((ch, idx) => {
-      const cls = ['tile', f.state[idx]];
-      if (idx === f.i) cls.push('current');
-      if (f.cmpTop && idx === topIdx) cls.push('top-cmp');
-      const pair = f.pairId[idx] ? `<span class="pair">#${f.pairId[idx]}</span>` : '';
-      return `<div class="cell"><span class="idx">${idx}</span>` +
-        `<div class="${cls.join(' ')}" aria-label="index ${idx}: ${esc(ch)}, ${f.state[idx]}">${esc(ch)}${pair}</div>` +
-        `<span class="ptr ${idx === f.i ? 'on' : ''}">▲ i</span></div>`;
-    }).join('');
-
-    // narration + badge + banner
-    narrEl.textContent = f.message;
-    const [bt, bc] = KIND_BADGE[f.kind];
-    badgeEl.textContent = bt;
-    badgeEl.className = 'kind-badge ' + bc;
-    if (f.result === true) { bannerEl.textContent = '✓ Valid → True'; bannerEl.className = 'result-banner ok'; }
-    else if (f.result === false) { bannerEl.textContent = '✗ Invalid → False'; bannerEl.className = 'result-banner no'; }
-    else { bannerEl.textContent = ''; bannerEl.className = 'result-banner'; }
-
-    // moves
-    const mv = KIND_TO_MOVE[f.kind];
-    moveEls.forEach(m => m.classList.toggle('active', m.dataset.move === mv));
-
-    // code lines
-    codeLines.forEach(el => el.classList.toggle('hl', f.lines.includes(+el.dataset.line)));
-
-    // stack panel
-    if (!f.stack.length) {
-      stackBox.innerHTML = '<div class="empty-note">empty</div>';
-    } else {
-      stackBox.innerHTML = f.stack.map((x, j) => {
-        const isTop = j === f.stack.length - 1;
-        const cls = ['sitem'];
-        if (isTop) cls.push('top');
-        if (isTop && f.cmpTop) cls.push('cmp');
-        if (f.badTop && (isTop || f.kind === 'end-left')) cls.push('bad');
-        return `<div class="${cls.join(' ')}"><b>${esc(x.ch)}</b><small>idx ${x.idx}</small></div>`;
-      }).join('');
+    // stack
+    els.stack.innerHTML = "";
+    if (!step.stack.length) {
+      els.stack.innerHTML = '<div class="empty">empty</div>';
     }
+    step.stack.forEach((it, k) => {
+      const d = document.createElement("div");
+      const isTop = k === step.stack.length - 1;
+      d.className = "item";
+      if (isTop) d.classList.add("top");
+      if (isTop && step.hiTop) d.classList.add("hi");
+      if (it.idx === step.badTop) d.classList.add("badtop");
+      if (step.leftover) d.classList.add("leftover");
+      if (isTop && step.pushed) d.classList.add("enter");
+      d.innerHTML = "<span>" + it.ch + "</span><small>s[" + it.idx + "]" + (isTop ? " · top" : "") + "</small>";
+      els.stack.appendChild(d);
+    });
+    els.popped.textContent = step.popped ? "popped ✓ " + step.popped : "";
+    els.popped.classList.remove("show");
+    if (step.popped) { void els.popped.offsetWidth; els.popped.classList.add("show"); }
 
-    // state values
-    $('stI').textContent = f.i >= 0 ? f.i : '–';
-    $('stCh').textContent = f.i >= 0 ? `'${f.s[f.i]}'` : '–';
-    $('stSize').textContent = f.stack.length;
-    $('stPairs').textContent = f.pairsClosed;
-    $('stOps').textContent = f.ops;
-    $('stRes').textContent = f.result === null ? '…' : (f.result ? 'True' : 'False');
-    const scanned = f.kind.startsWith('end') ? f.s.length : (f.i >= 0 ? f.i + 1 : 0);
-    $('progBar').style.width = (scanned / f.s.length * 100) + '%';
+    // variables
+    const ch = step.i >= 0 && step.i < s.length ? "'" + s[step.i] + "'" : "—";
+    const top = step.stack.length ? "'" + step.stack[step.stack.length - 1].ch + "'" : "—";
+    const vars = {
+      "s": '"' + s + '"',
+      "i": step.i >= 0 && step.i < s.length ? String(step.i) : "—",
+      "ch": ch,
+      "pairs[ch]": step.i >= 0 && s[step.i] in PAIRS ? "'" + PAIRS[s[step.i]] + "'" : "—",
+      "stack": "[" + step.stack.map(x => "'" + x.ch + "'").join(", ") + "]",
+      "stack[-1]": top,
+      "len(stack)": String(step.stack.length)
+    };
+    els.vars.innerHTML = "";
+    Object.keys(vars).forEach(k => {
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = vars[k];
+      if (prevVars[k] !== undefined && prevVars[k] !== vars[k]) dd.classList.add("changed");
+      els.vars.append(dt, dd);
+    });
+    prevVars = vars;
 
-    // controls
-    scrub.value = cur;
-    frameOut.textContent = `${cur + 1} / ${frames.length}`;
-    btnBack.disabled = cur === 0;
-    btnNext.disabled = cur === frames.length - 1;
-    if (cur === frames.length - 1) stop();
+    // result
+    els.result.className = "result";
+    if (step.result === true) { els.result.classList.add("true"); els.result.textContent = "return True ✓ valid"; }
+    else if (step.result === false) { els.result.classList.add("false"); els.result.textContent = "return False ✗ invalid"; }
+    else els.result.textContent = "result: —";
+
+    // code
+    codeLines.forEach(l => l.classList.toggle("active", +l.dataset.line === step.line));
+
+    // narration & progress
+    els.narration.textContent = "Step " + (cur + 1) + ": " + step.msg;
+    els.scrub.max = steps.length - 1;
+    els.scrub.value = cur;
+    els.stepinfo.textContent = "Step " + (cur + 1) + " / " + steps.length + " · line " + step.line;
+    els.back.disabled = cur === 0;
+    els.next.disabled = cur === steps.length - 1;
   }
 
   /* ---------- playback ---------- */
-  function play() {
-    if (cur >= frames.length - 1) show(0);
-    btnPlay.textContent = '❚❚ Pause';
-    btnPlay.setAttribute('aria-pressed', 'true');
-    clearInterval(timer);
-    timer = setInterval(() => {
-      if (cur >= frames.length - 1) { stop(); return; }
-      show(cur + 1);
-    }, 1000 / speed);
+  function go(n) {
+    cur = Math.max(0, Math.min(steps.length - 1, n));
+    render();
+  }
+  function setPlaying(on) {
+    els.play.textContent = on ? "❚❚ Pause" : "▶ Play";
+    els.play.setAttribute("aria-pressed", String(on));
+    els.play.setAttribute("aria-label", on ? "Pause (Space)" : "Play (Space)");
   }
   function stop() {
-    clearInterval(timer); timer = null;
-    btnPlay.textContent = '▶ Play';
-    btnPlay.setAttribute('aria-pressed', 'false');
+    if (timer) { clearTimeout(timer); timer = null; }
+    setPlaying(false);
   }
-  const toggle = () => (timer ? stop() : play());
+  function tick() {
+    if (cur >= steps.length - 1) { stop(); return; }
+    go(cur + 1);
+    timer = setTimeout(tick, SPEEDS[els.speed.value - 1]);
+  }
+  function play() {
+    if (timer) { stop(); return; }
+    if (cur >= steps.length - 1) go(0);
+    setPlaying(true);
+    timer = setTimeout(tick, SPEEDS[els.speed.value - 1]);
+  }
 
-  btnPlay.addEventListener('click', toggle);
-  btnNext.addEventListener('click', () => { stop(); show(cur + 1); });
-  btnBack.addEventListener('click', () => { stop(); show(cur - 1); });
-  btnRestart.addEventListener('click', () => { stop(); show(0); });
-  scrub.addEventListener('input', () => { stop(); show(+scrub.value); });
-
-  document.querySelectorAll('.speed button').forEach(b => b.addEventListener('click', () => {
-    speed = +b.dataset.speed;
-    document.querySelectorAll('.speed button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
-    if (timer) play();
-  }));
-
-  document.addEventListener('keydown', (e) => {
-    const tag = (e.target.tagName || '').toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.code === 'Space') { e.preventDefault(); toggle(); }
-    else if (e.key === 'ArrowRight') { e.preventDefault(); stop(); show(cur + 1); }
-    else if (e.key === 'ArrowLeft') { e.preventDefault(); stop(); show(cur - 1); }
-    else if (e.key === 'r' || e.key === 'R') { stop(); show(0); }
-  });
+  function load(str) {
+    stop();
+    s = str;
+    steps = build(s);
+    prevVars = {};
+    cur = 0;
+    [...els.exButtons.children].forEach(b => b.setAttribute("aria-pressed", String(b.dataset.s === s)));
+    render();
+  }
 
   /* ---------- inputs ---------- */
-  function load(s) {
-    stop();
-    currentInput = s;
-    frames = build(s);
-    console.assert(finalResult(frames) === reference(s), 'build() disagrees with reference for', s);
-    scrub.max = frames.length - 1;
-    document.querySelectorAll('#presets button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
-    show(0);
-  }
-
-  const presetsEl = $('presets');
-  PRESETS.forEach(p => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = `"${p.label}"`;
-    b.dataset.s = p.s;
-    b.setAttribute('aria-pressed', 'false');
-    b.addEventListener('click', () => { $('err').textContent = ''; load(p.s); });
-    presetsEl.appendChild(b);
+  EXAMPLES.forEach(ex => {
+    const b = document.createElement("button");
+    b.className = "ex";
+    b.type = "button";
+    b.dataset.s = ex;
+    b.textContent = '"' + ex + '"';
+    b.setAttribute("aria-pressed", "false");
+    b.setAttribute("aria-label", "Use input " + ex);
+    b.addEventListener("click", () => { els.err.textContent = ""; els.input.removeAttribute("aria-invalid"); load(ex); });
+    els.exButtons.appendChild(b);
   });
 
-  $('customForm').addEventListener('submit', (e) => {
+  els.form.addEventListener("submit", e => {
     e.preventDefault();
-    const raw = $('customInput').value.replace(/\s+/g, '');
-    const err = $('err');
-    if (!raw.length) { err.textContent = 'Please enter at least one bracket character.'; return; }
-    if (raw.length > MAX_LEN) { err.textContent = `Too long for the visualizer. Keep it to ${MAX_LEN} characters or fewer.`; return; }
-    if (!VALID_CHARS.test(raw)) {
-      const bad = [...new Set([...raw].filter(c => !'()[]{}'.includes(c)))].join(' ');
-      err.textContent = `Only ( ) [ ] { } are allowed. Invalid: ${bad}`;
-      return;
-    }
-    err.textContent = '';
-    load(raw);
+    const v = els.input.value.trim();
+    if (!v.length) { els.err.textContent = "Enter at least one bracket."; els.input.setAttribute("aria-invalid", "true"); return; }
+    if (!/^[()[\]{}]+$/.test(v)) { els.err.textContent = "Only the characters ()[]{} are allowed."; els.input.setAttribute("aria-invalid", "true"); return; }
+    els.err.textContent = "";
+    els.input.removeAttribute("aria-invalid");
+    load(v);
   });
 
-  load('{[()()]}');
+  els.play.addEventListener("click", play);
+  els.next.addEventListener("click", () => { stop(); go(cur + 1); });
+  els.back.addEventListener("click", () => { stop(); go(cur - 1); });
+  els.restart.addEventListener("click", () => { stop(); prevVars = {}; go(0); });
+  els.scrub.addEventListener("input", () => { stop(); go(+els.scrub.value); });
+
+  document.addEventListener("keydown", e => {
+    const t = e.target;
+    if (t && (t.tagName === "INPUT" && t.type === "text" || t.tagName === "TEXTAREA")) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === " " || e.code === "Space") { e.preventDefault(); play(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); stop(); go(cur + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); stop(); go(cur - 1); }
+    else if (e.key === "r" || e.key === "R") { e.preventDefault(); stop(); prevVars = {}; go(0); }
+  });
+
+  load("([)]");
 })();
 </script>
 </body>

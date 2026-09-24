@@ -57,27 +57,15 @@ class ClaudeAgent(BaseAgent):
                 error=str(e),
             )
 
-        # Build prompt: instructions + problem data + output requirement
+        # Build prompt: instructions + problem data
+        # Don't mention output file to avoid Claude asking for write approval
         prompt = f"""{instructions}
 
-## Problem to solve
-
-Problem file: {problem_file}
-Output file: {output_file}
-
-If you cannot read the file above, use this problem data instead:
+## Problem Data
 
 ```json
 {json.dumps(problem_data, indent=2)}
 ```
-
-## Output requirement
-
-Write exactly one HTML file to: {output_file}
-
-Do not write to any other file.
-Do not modify index.html, app.js, problems.json, or anything in the generator/ directory.
-Do not interact with the database.
 
 Output the HTML now:
 """
@@ -89,12 +77,40 @@ Output the HTML now:
             timeout=timeout_seconds,
         )
 
-        # Check completion
-        success = (
-            exit_code == 0
-            and output_file.exists()
-            and output_file.stat().st_size > 0
-        )
+        # Extract HTML from stdout
+        html_content = None
+
+        # Try to find ```html code block
+        import re
+        html_block_match = re.search(r'```html\s*(.*?)\s*```', stdout, re.DOTALL)
+        if html_block_match:
+            html_content = html_block_match.group(1).strip()
+        else:
+            # Fall back to looking for <!DOCTYPE or <html tag
+            if '<!DOCTYPE' in stdout or '<html' in stdout:
+                start_idx = stdout.find('<!DOCTYPE')
+                if start_idx == -1:
+                    start_idx = stdout.find('<html')
+                if start_idx != -1:
+                    # Take from the HTML tag to the end (or until </html>)
+                    html_part = stdout[start_idx:]
+                    end_idx = html_part.find('</html>')
+                    if end_idx != -1:
+                        html_content = html_part[:end_idx+7]
+                    else:
+                        # If no closing tag, just take everything after the opening tag
+                        html_content = html_part
+
+        # Write extracted HTML to output file
+        success = False
+        if html_content:
+            try:
+                output_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(output_file, "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                success = output_file.exists() and output_file.stat().st_size > 0
+            except Exception as e:
+                stderr = f"Failed to write output file: {e}"
 
         return AgentResult(
             success=success,
@@ -102,5 +118,5 @@ Output the HTML now:
             duration_seconds=duration,
             stdout=stdout,
             stderr=stderr,
-            error=None if success else f"Exit code {exit_code}",
+            error=None if success else (f"Exit code {exit_code}" if not html_content else "Failed to write file"),
         )

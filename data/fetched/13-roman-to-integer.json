@@ -1,0 +1,19 @@
+{
+  "leetcode_id": "13",
+  "title": "Roman to Integer",
+  "slug": "roman-to-integer",
+  "difficulty": "Easy",
+  "url": "https://leetcode.com/problems/roman-to-integer/",
+  "topics": [
+    "erlang",
+    "swift",
+    "Internal Error",
+    "\u8c03\u8bd5\u5668",
+    "python"
+  ],
+  "description_summary": "",
+  "examples": [],
+  "constraints": [],
+  "starter_python": "",
+  "fetched_at": "2026-09-24T17:13:09.199215Z"
+}

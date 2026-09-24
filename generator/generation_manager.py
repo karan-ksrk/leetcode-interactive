@@ -48,19 +48,12 @@ def reconcile_duplicate(conn: sqlite3.Connection, problem: Problem, problems_dir
                                 last_error="Published file missing on disk")
             return "skip"
 
-    # File exists on disk but DB not published → validate existing file
+    # File exists on disk but DB not published → regenerate to ensure proper workflow
+    # (adopting would skip fetch/generate/validate workflow and violate status transitions)
     expected_file = problems_dir / f"{problem.leetcode_id}-{problem.slug}.html"
     if expected_file.exists() and expected_file.stat().st_size > 0:
-        validation = validate(expected_file, run_dynamic=False)
-        if validation.passed:
-            # Adopt the existing valid file
-            update_problem_status(conn, problem.leetcode_id, "published",
-                                html_file=str(expected_file),
-                                validation_passed=True)
-            return "adopt"
-        else:
-            # Invalid file, regenerate
-            return "regenerate"
+        # Existing file on disk but not in DB — regenerate through proper workflow
+        return "regenerate"
 
     return "new"
 
@@ -157,6 +150,7 @@ def generate_one(
             problem_file=problem_json_path,
             instruction_file=instruction_file,
             output_file=staging_file,
+            timeout_seconds=120,
         )
 
         if not agent_result.success:
@@ -195,8 +189,10 @@ def generate_one(
 
         # 8. Update DB
         duration = (datetime.utcnow() - start_time).total_seconds()
+        # Store just the filename (manifest.py will add the problems/ prefix)
+        html_filename = final_file.name
         update_problem_status(conn, problem.leetcode_id, "published",
-                            html_file=str(final_file),
+                            html_file=html_filename,
                             validation_passed=True,
                             generation_completed_at=datetime.utcnow().isoformat() + "Z",
                             generation_duration_seconds=duration)
@@ -212,7 +208,7 @@ def generate_one(
         rebuild_generation_manifest(conn)
 
         problem = get_problem_by_id(conn, problem.leetcode_id)
-        print(f"✓ Generated #{problem.leetcode_id}: {problem.title} in {duration:.1f}s")
+        print(f"[OK] Generated #{problem.leetcode_id}: {problem.title} in {duration:.1f}s")
 
         return GenerationOutcome(True, problem, job.db_id)
 

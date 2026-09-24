@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-09-24T17:38:14.572517Z",
+  "total_problems": 8,
+  "status_counts": {
+    "pending": 0,
+    "fetching": 0,
+    "fetched": 0,
+    "generating": 1,
+    "validating": 0,
+    "published": 4,
+    "failed": 3
+  },
+  "difficulty_counts": {
+    "Easy": 3,
+    "Medium": 1,
+    "Hard": 0
+  },
+  "agent_counts": {
+    "claude": 4
+  },
+  "last_batch": {
+    "batch_number": 1,
+    "difficulty": "Easy",
+    "status": "completed",
+    "generated_count": 0,
+    "failed_count": 3
+  },
+  "avg_generation_duration_seconds": 120.93
+}

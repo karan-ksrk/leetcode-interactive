@@ -1,737 +1,544 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeetCode #1 - Two Sum (Hash Map)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --ground: #EDF0EB;
-            --panel: #FAFBF8;
-            --ink: #16201C;
-            --muted: #5A6962;
-            --line: #CAD3CD;
-            --soft: #E1E7E2;
-            --window: #3346C4;
-            --window-dark: #8E9CFF;
-            --read: #6B3FB8;
-            --read-dark: #C09BFF;
-            --success: #1B8A4B;
-            --success-dark: #4ACB7C;
-            --warning: #B97A00;
-            --warning-dark: #F2B53F;
-            --danger: #BF3F2B;
-            --danger-dark: #FF7D66;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1. Two Sum — Interactive Visualization</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --panel: #ffffff;
+    --text: #1d2330;
+    --muted: #5f6b7a;
+    --border: #dde2ea;
+    --accent: #2f6fed;
+    --accent-soft: #e3ecfd;
+    --good: #1f9d55;
+    --good-soft: #dcf5e6;
+    --bad: #d64545;
+    --bad-soft: #fbe3e3;
+    --warn: #c98a00;
+    --warn-soft: #fff4d6;
+    --code-bg: #f3f5f9;
+    --line-hl: #fff1b8;
+    --shadow: 0 1px 3px rgba(20, 30, 50, .08), 0 4px 16px rgba(20, 30, 50, .05);
+    --easy: #00a86b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #11141a;
+      --panel: #1a1f28;
+      --text: #e6e9ef;
+      --muted: #97a1b0;
+      --border: #2c3442;
+      --accent: #6c9cff;
+      --accent-soft: #1f2d4a;
+      --good: #4ccf85;
+      --good-soft: #173826;
+      --bad: #ff7676;
+      --bad-soft: #3d1c1f;
+      --warn: #f1c152;
+      --warn-soft: #3a3016;
+      --code-bg: #141820;
+      --line-hl: #3b3517;
+      --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 4px 16px rgba(0, 0, 0, .25);
+      --easy: #3ddc97;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 48px; }
+  header h1 { margin: 0 0 6px; font-size: 1.7rem; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  .pill {
+    font-size: .78rem; padding: 2px 10px; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--muted); background: var(--panel);
+  }
+  .pill.easy { color: var(--easy); border-color: var(--easy); font-weight: 600; }
+  .meta a { color: var(--accent); font-size: .85rem; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    box-shadow: var(--shadow); padding: 16px 18px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 1rem; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  details summary { cursor: pointer; font-weight: 600; }
+  .desc p { margin: 8px 0; }
+  code, pre, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .desc code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: .9em; }
+  .examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .examples pre { margin: 0; background: var(--code-bg); padding: 10px; border-radius: 8px; font-size: .85rem; white-space: pre-wrap; }
 
-        @media (prefers-color-scheme: dark) {
-            :root:not([data-theme="light"]) {
-                --ground: #0E1311;
-                --panel: #151C19;
-                --ink: #E5ECE7;
-                --muted: #92A39A;
-                --line: #2A3631;
-                --soft: #1D2622;
-            }
-        }
+  .setup { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; }
+  .field { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; color: var(--muted); }
+  select, input[type=text], input[type=number] {
+    font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; min-width: 0;
+  }
+  input[type=text] { width: 220px; }
+  input[type=number] { width: 100px; }
+  .err { color: var(--bad); font-size: .85rem; min-height: 1.2em; width: 100%; }
 
-        :root[data-theme="dark"] {
-            --ground: #0E1311;
-            --panel: #151C19;
-            --ink: #E5ECE7;
-            --muted: #92A39A;
-            --line: #2A3631;
-            --soft: #1D2622;
-        }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px;
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .speed { display: flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--muted); margin-left: auto; }
+  .progress { flex-basis: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .progress > div { height: 100%; background: var(--accent); width: 0; transition: width .25s; }
+  .stepcount { font-size: .85rem; color: var(--muted); }
+  .kbd-hint { font-size: .8rem; color: var(--muted); flex-basis: 100%; }
+  kbd {
+    font-family: inherit; font-size: .75rem; border: 1px solid var(--border);
+    border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--bg);
+  }
 
-        * {
-            box-sizing: border-box;
-        }
+  .grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; }
+  @media (max-width: 860px) { .grid { grid-template-columns: 1fr; } }
 
-        body {
-            margin: 0;
-            padding: 16px;
-            font-family: "IBM Plex Sans", system-ui, sans-serif;
-            background-color: var(--ground);
-            color: var(--ink);
-            line-height: 1.6;
-        }
+  .narration {
+    font-size: 1.02rem; padding: 12px 14px; border-radius: 10px;
+    background: var(--accent-soft); border-left: 4px solid var(--accent); min-height: 3.2em;
+  }
+  .narration.success { background: var(--good-soft); border-left-color: var(--good); }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+  .target-line { margin: 14px 0 6px; font-size: .95rem; color: var(--muted); }
+  .target-line b { color: var(--text); font-size: 1.1rem; }
+  .array { display: flex; flex-wrap: wrap; gap: 8px; padding: 26px 0 8px; }
+  .cell { display: flex; flex-direction: column; align-items: center; position: relative; }
+  .box {
+    width: 58px; height: 58px; display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--border); border-radius: 10px; background: var(--bg);
+    font-weight: 700; font-size: 1.1rem; transition: all .3s ease;
+  }
+  .idx { font-size: .75rem; color: var(--muted); margin-top: 4px; }
+  .cell.visited .box { opacity: .55; }
+  .cell.current .box { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-4px); opacity: 1; }
+  .cell.inmap .box { opacity: 1; border-style: dashed; }
+  .cell.match .box { border-color: var(--good); background: var(--good-soft); opacity: 1; transform: translateY(-4px); }
+  .pointer {
+    position: absolute; top: -24px; font-size: .78rem; font-weight: 700; color: var(--accent);
+    opacity: 0; transition: opacity .2s;
+  }
+  .cell.current .pointer { opacity: 1; }
 
-        header {
-            margin-bottom: 40px;
-        }
+  .vars { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 14px; }
+  .var { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; transition: border-color .3s, background .3s; }
+  .var .k { font-size: .75rem; color: var(--muted); }
+  .var .v { font-weight: 700; font-size: 1.05rem; }
+  .var.changed { border-color: var(--warn); background: var(--warn-soft); }
 
-        .eyebrow {
-            font-size: 0.85rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
+  .map-wrap h3 { margin: 16px 0 8px; font-size: .95rem; }
+  table.map { border-collapse: collapse; width: 100%; max-width: 360px; font-size: .95rem; }
+  table.map th, table.map td { border: 1px solid var(--border); padding: 6px 10px; text-align: center; }
+  table.map th { background: var(--bg); color: var(--muted); font-weight: 600; font-size: .8rem; }
+  table.map tr { transition: background .3s; }
+  table.map tr.new { background: var(--warn-soft); }
+  table.map tr.hit { background: var(--good-soft); font-weight: 700; }
+  table.map .empty { color: var(--muted); font-style: italic; }
+  .lookup { margin-top: 8px; font-size: .9rem; min-height: 1.5em; }
+  .lookup .miss { color: var(--bad); font-weight: 600; }
+  .lookup .hitt { color: var(--good); font-weight: 600; }
 
-        h1 {
-            font-family: "Bricolage Grotesque", system-ui, sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-            margin: 0 0 16px 0;
-            color: var(--ink);
-        }
+  pre.code {
+    margin: 0; background: var(--code-bg); border-radius: 10px; padding: 10px 0;
+    font-size: .88rem; overflow-x: auto; counter-reset: ln;
+  }
+  .ln { display: block; padding: 1px 14px 1px 0; white-space: pre; border-left: 4px solid transparent; transition: background .2s; }
+  .ln::before {
+    counter-increment: ln; content: counter(ln); display: inline-block; width: 2.4em;
+    text-align: right; margin-right: 12px; color: var(--muted); opacity: .7;
+  }
+  .ln.active { background: var(--line-hl); border-left-color: var(--warn); }
+  .kw { color: #a626a4; } .fn { color: #4078f2; } .cm { color: var(--muted); font-style: italic; }
+  @media (prefers-color-scheme: dark) { .kw { color: #c792ea; } .fn { color: #82aaff; } }
+  .complexity { margin-top: 12px; font-size: .88rem; color: var(--muted); }
+  .complexity b { color: var(--text); }
+  .result-banner { margin-top: 12px; font-weight: 700; color: var(--good); min-height: 1.4em; }
 
-        .description {
-            font-size: 1.05rem;
-            color: var(--muted);
-            line-height: 1.7;
-        }
-
-        .moves-section h2,
-        .stage-section h2,
-        .why-fast-section h2 {
-            font-family: "Bricolage Grotesque", system-ui, sans-serif;
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin: 32px 0 16px 0;
-            color: var(--ink);
-        }
-
-        .moves-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 32px;
-        }
-
-        .move-card {
-            padding: 12px;
-            background-color: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-
-        .move-card.active {
-            background-color: rgba(27, 138, 75, 0.1);
-            border-color: var(--success);
-            border-left: 3px solid var(--success);
-        }
-
-        .move-label {
-            font-weight: 600;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 4px;
-        }
-
-        .move-rule {
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 4px;
-        }
-
-        .move-explain {
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-
-        .stage {
-            background-color: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
-            overflow-x: auto;
-        }
-
-        .array-container {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 20px;
-            align-items: flex-end;
-        }
-
-        .array-tile {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 40px;
-            height: 40px;
-            background-color: var(--soft);
-            border: 1px solid var(--line);
-            border-radius: 4px;
-            font-family: "JetBrains Mono", monospace;
-            font-weight: 600;
-            color: var(--ink);
-            font-size: 0.9rem;
-        }
-
-        .array-tile.current {
-            background-color: rgba(107, 63, 184, 0.2);
-            border-color: var(--read);
-            box-shadow: 0 0 8px rgba(107, 63, 184, 0.3);
-        }
-
-        .array-tile.found {
-            background-color: rgba(27, 138, 75, 0.2);
-            border-color: var(--success);
-        }
-
-        .hash-map {
-            font-family: "JetBrains Mono", monospace;
-            font-size: 0.85rem;
-            margin-bottom: 20px;
-            padding: 12px;
-            background-color: var(--ground);
-            border-radius: 4px;
-            border: 1px solid var(--line);
-            white-space: pre;
-            overflow-x: auto;
-        }
-
-        .narration {
-            padding: 12px;
-            background-color: rgba(51, 70, 196, 0.05);
-            border-left: 3px solid var(--window);
-            border-radius: 4px;
-            color: var(--ink);
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin: 24px 0;
-            flex-wrap: wrap;
-        }
-
-        button {
-            padding: 8px 16px;
-            background-color: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 6px;
-            color: var(--ink);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        button:hover {
-            background-color: var(--soft);
-            border-color: var(--muted);
-        }
-
-        button:active {
-            transform: scale(0.98);
-        }
-
-        button:focus {
-            outline: 2px solid var(--window);
-            outline-offset: 2px;
-        }
-
-        .speed-control {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .speed-btn {
-            padding: 6px 10px;
-            font-size: 0.85rem;
-        }
-
-        .speed-btn.active {
-            background-color: var(--window);
-            color: white;
-            border-color: var(--window);
-        }
-
-        input[type="range"] {
-            width: 150px;
-            cursor: pointer;
-        }
-
-        .frame-info {
-            font-family: "JetBrains Mono", monospace;
-            font-size: 0.85rem;
-            color: var(--muted);
-        }
-
-        .code-panel {
-            background-color: var(--ground);
-            border: 1px solid var(--line);
-            border-radius: 6px;
-            padding: 16px;
-            margin: 24px 0;
-            overflow-x: auto;
-        }
-
-        .code-panel pre {
-            margin: 0;
-            font-family: "JetBrains Mono", monospace;
-            font-size: 0.85rem;
-            line-height: 1.5;
-            color: var(--ink);
-        }
-
-        .code-line {
-            display: block;
-            padding-left: 40px;
-            position: relative;
-        }
-
-        .code-line::before {
-            content: attr(data-line);
-            position: absolute;
-            left: 8px;
-            width: 28px;
-            text-align: right;
-            color: var(--muted);
-        }
-
-        .code-line.active {
-            background-color: rgba(107, 63, 184, 0.15);
-            border-left: 2px solid var(--read);
-        }
-
-        .section {
-            margin: 32px 0;
-        }
-
-        .why-fast-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 16px;
-        }
-
-        .why-card {
-            padding: 16px;
-            background-color: var(--panel);
-            border: 1px solid var(--line);
-            border-radius: 6px;
-        }
-
-        .why-card h3 {
-            margin: 0 0 8px 0;
-            font-family: "Bricolage Grotesque", system-ui, sans-serif;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--ink);
-        }
-
-        .why-card p {
-            margin: 0;
-            font-size: 0.95rem;
-            color: var(--muted);
-            line-height: 1.6;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: 0.01ms !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .moves-cards {
-                grid-template-columns: 1fr;
-            }
-
-            .controls {
-                gap: 6px;
-            }
-
-            button {
-                padding: 6px 12px;
-                font-size: 0.85rem;
-            }
-
-            .array-tile {
-                width: 36px;
-                height: 36px;
-                font-size: 0.8rem;
-            }
-        }
-    </style>
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; }
+  }
+</style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="eyebrow">LeetCode #1 • Easy • Hash Map</div>
-            <h1>Two Sum: Scan and Store</h1>
-            <p class="description">
-                Find two numbers that add to a target in one pass.
-                Store each number in a hash map as you scan, so when you find a complement, you're done.
-            </p>
-        </header>
-
-        <section class="moves-section">
-            <h2>Algorithm Moves</h2>
-            <div class="moves-cards">
-                <div class="move-card active" id="move-0">
-                    <div class="move-label">Scan</div>
-                    <div class="move-rule">Read one number</div>
-                    <div class="move-explain">Check if its complement exists in the map</div>
-                </div>
-                <div class="move-card" id="move-1">
-                    <div class="move-label">Found</div>
-                    <div class="move-rule">Match found</div>
-                    <div class="move-explain">Both numbers add to target</div>
-                </div>
-                <div class="move-card" id="move-2">
-                    <div class="move-label">Store</div>
-                    <div class="move-rule">Add to map</div>
-                    <div class="move-explain">Remember this number for future matches</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="stage-section">
-            <h2>Animation</h2>
-            <div class="stage">
-                <div>
-                    <strong>Array:</strong>
-                    <div class="array-container" id="array-display"></div>
-                </div>
-
-                <div>
-                    <strong>Hash Map (number → index):</strong>
-                    <div class="hash-map" id="hash-map-display"></div>
-                </div>
-
-                <div>
-                    <strong>Current State:</strong>
-                    <div class="narration" aria-live="polite" id="narration">Starting algorithm...</div>
-                </div>
-            </div>
-
-            <div class="controls">
-                <button id="restart-btn">↻ Restart</button>
-                <button id="prev-btn">← Back</button>
-                <button id="play-btn">▶ Play</button>
-                <button id="next-btn">Next →</button>
-
-                <div class="speed-control">
-                    <button class="speed-btn" data-speed="0.5">0.5×</button>
-                    <button class="speed-btn active" data-speed="1">1×</button>
-                    <button class="speed-btn" data-speed="2">2×</button>
-                </div>
-
-                <input type="range" id="scrubber" min="0" max="0" value="0" aria-label="Frame scrubber">
-                <span class="frame-info"><span id="frame-index">0</span> / <span id="frame-total">0</span></span>
-            </div>
-        </section>
-
-        <section class="code-panel">
-            <pre id="code-display"></pre>
-        </section>
-
-        <section class="why-fast-section">
-            <h2 style="grid-column: 1 / -1;">Why It's Fast</h2>
-            <div class="why-card">
-                <h3>Key Insight</h3>
-                <p>One hash map lookup per element. No nested loops, no searching.</p>
-            </div>
-            <div class="why-card">
-                <h3>Complexity</h3>
-                <p><strong>Time:</strong> O(n) — one pass through the array<br><strong>Space:</strong> O(n) — hash map stores up to n elements</p>
-            </div>
-            <div class="why-card">
-                <h3>vs Brute Force</h3>
-                <p>Brute force: O(n²) nested loops checking every pair. This: O(n) with one pass.</p>
-            </div>
-        </section>
-
-        <section class="section">
-            <h2>Try Another Example</h2>
-            <label for="custom-input">Array (comma-separated):</label>
-            <input type="text" id="custom-input" placeholder="e.g., 2,7,11,15" value="2,7,11,15">
-            <label for="custom-target">Target:</label>
-            <input type="number" id="custom-target" placeholder="e.g., 9" value="9">
-            <button id="run-custom-btn">Run Custom</button>
-            <div id="custom-result" style="margin-top: 12px; font-family: 'JetBrains Mono', monospace;"></div>
-        </section>
+<div class="wrap">
+  <header>
+    <h1>1. Two Sum</h1>
+    <div class="meta">
+      <span class="pill easy">Easy</span>
+      <span class="pill">Array</span>
+      <span class="pill">Hash Table</span>
+      <a href="https://leetcode.com/problems/two-sum/" target="_blank" rel="noopener">View on LeetCode ↗</a>
     </div>
+  </header>
 
-    <script>
-        const PYTHON_CODE = `def twoSum(nums, target):
-    seen = {}
-    for i, num in enumerate(nums):
-        complement = target - num
-        if complement in seen:
-            return [seen[complement], i]
-        seen[num] = i
-    return []`;
+  <section class="card desc" aria-labelledby="desc-h">
+    <details open>
+      <summary id="desc-h">Problem Description</summary>
+      <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p>
+      <p>You may assume that each input would have <strong><em>exactly</em> one solution</strong>, and you may not use the <em>same</em> element twice.</p>
+      <p>You can return the answer in any order.</p>
+      <div class="examples">
+        <pre><strong>Example 1</strong>
+Input: nums = [2,7,11,15], target = 9
+Output: [0,1]
+Because nums[0] + nums[1] == 9</pre>
+        <pre><strong>Example 2</strong>
+Input: nums = [3,2,4], target = 6
+Output: [1,2]</pre>
+        <pre><strong>Example 3</strong>
+Input: nums = [3,3], target = 6
+Output: [0,1]</pre>
+      </div>
+      <p><strong>Constraints:</strong></p>
+      <ul>
+        <li><code>2 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
+        <li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
+        <li><code>-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li>
+        <li><strong>Only one valid answer exists.</strong></li>
+      </ul>
+      <p><strong>Follow-up:</strong> Can you come up with an algorithm that is less than <code>O(n<sup>2</sup>)</code> time complexity? — The visualization below shows the one-pass hash map approach in <code>O(n)</code>.</p>
+    </details>
+  </section>
 
-        let speed = 1;
-        let isPlaying = false;
-        let frames = [];
-        let currentFrameIndex = 0;
-        let currentNums = [];  // Track current array for display
+  <section class="card" aria-label="Input setup">
+    <h2>Input</h2>
+    <div class="setup">
+      <label class="field">Example
+        <select id="exampleSel">
+          <option value="0">Example 1: [2,7,11,15], 9</option>
+          <option value="1">Example 2: [3,2,4], 6</option>
+          <option value="2">Example 3: [3,3], 6</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </label>
+      <label class="field">nums (comma-separated)
+        <input type="text" id="numsIn" value="2,7,11,15" inputmode="text" autocomplete="off">
+      </label>
+      <label class="field">target
+        <input type="number" id="targetIn" value="9">
+      </label>
+      <button id="loadBtn" type="button">Load</button>
+      <div class="err" id="err" role="alert"></div>
+    </div>
+  </section>
 
-        class TwoSumSolver {
-            constructor(nums, target) {
-                this.nums = nums;
-                this.target = target;
-                this.frames = [];
-            }
+  <section class="card" aria-label="Playback controls">
+    <div class="controls">
+      <button id="restartBtn" type="button" aria-label="Restart (R)">⟲ Restart</button>
+      <button id="backBtn" type="button" aria-label="Previous step (Left arrow)">◀ Back</button>
+      <button id="playBtn" type="button" class="primary" aria-label="Play (Space)">▶ Play</button>
+      <button id="nextBtn" type="button" aria-label="Next step (Right arrow)">Next ▶</button>
+      <span class="stepcount" id="stepCount">Step 0 / 0</span>
+      <label class="speed">Speed
+        <input type="range" id="speed" min="200" max="2000" step="100" value="900" aria-label="Playback delay in milliseconds">
+      </label>
+      <div class="progress" aria-hidden="true"><div id="progressBar"></div></div>
+      <div class="kbd-hint"><kbd>Space</kbd> play/pause · <kbd>←</kbd> <kbd>→</kbd> step · <kbd>R</kbd> restart</div>
+    </div>
+  </section>
 
-            solve() {
-                const seen = {};
-                const frames = [];
+  <div class="grid">
+    <section class="card" aria-label="Visualization">
+      <h2>Visualization</h2>
+      <div class="narration" id="narration" aria-live="polite" aria-atomic="true"></div>
+      <div class="target-line">target = <b id="targetShow"></b></div>
+      <div class="array" id="array" role="list" aria-label="nums array"></div>
+      <div class="vars" id="vars"></div>
+      <div class="map-wrap">
+        <h3>seen <span class="mono" style="color:var(--muted);font-weight:400">{ value → index }</span></h3>
+        <table class="map" aria-label="Hash map seen">
+          <thead><tr><th scope="col">key (num)</th><th scope="col">value (index)</th></tr></thead>
+          <tbody id="mapBody"></tbody>
+        </table>
+        <div class="lookup" id="lookup"></div>
+      </div>
+      <div class="result-banner" id="result"></div>
+    </section>
 
-                // Initial frame
-                frames.push({
-                    kind: "start",
-                    msg: `Finding two numbers in [${this.nums.join(", ")}] that sum to ${this.target}`,
-                    current_idx: -1,
-                    seen: {},
-                    answer: null,
-                    current_line: -1,
-                });
+    <section class="card" aria-label="Python solution">
+      <h2>Python Solution</h2>
+      <pre class="code" id="code" aria-label="Python source code"></pre>
+      <div class="complexity">
+        <div><b>Time:</b> O(n) — single pass, each hash lookup is O(1) on average.</div>
+        <div><b>Space:</b> O(n) — the hash map stores up to n entries.</div>
+        <p><b>Idea:</b> For each number, the partner we need is <span class="mono">target − num</span>. If that partner was already seen, we're done; otherwise remember the current number and its index.</p>
+      </div>
+    </section>
+  </div>
+</div>
 
-                for (let i = 0; i < this.nums.length; i++) {
-                    const num = this.nums[i];
-                    const complement = this.target - num;
+<script>
+(function () {
+  "use strict";
 
-                    frames.push({
-                        kind: "read",
-                        msg: `Current: nums[${i}] = ${num}. Need: ${this.target} - ${num} = ${complement}.`,
-                        current_idx: i,
-                        seen: { ...seen },
-                        answer: null,
-                        current_line: 3,
-                    });
+  const EXAMPLES = [
+    { nums: [2, 7, 11, 15], target: 9 },
+    { nums: [3, 2, 4], target: 6 },
+    { nums: [3, 3], target: 6 }
+  ];
 
-                    if (complement in seen) {
-                        const answer = [seen[complement], i];
-                        frames.push({
-                            kind: "found",
-                            msg: `Found! nums[${seen[complement]}] + nums[${i}] = ${seen[complement] ? this.nums[seen[complement]] : '?'} + ${num} = ${this.target}`,
-                            current_idx: i,
-                            seen: { ...seen },
-                            answer: answer,
-                            current_line: 4,
-                        });
-                        return frames;
-                    }
+  const CODE = [
+    '<span class="kw">class</span> Solution:',
+    '    <span class="kw">def</span> <span class="fn">twoSum</span>(self, nums: list[int], target: int) -&gt; list[int]:',
+    '        seen = {}  <span class="cm"># value -&gt; index</span>',
+    '        <span class="kw">for</span> i, num <span class="kw">in</span> <span class="fn">enumerate</span>(nums):',
+    '            complement = target - num',
+    '            <span class="kw">if</span> complement <span class="kw">in</span> seen:',
+    '                <span class="kw">return</span> [seen[complement], i]',
+    '            seen[num] = i',
+    '        <span class="kw">return</span> []'
+  ];
 
-                    frames.push({
-                        kind: "store",
-                        msg: `${complement} not in map. Store: ${num} → ${i}.`,
-                        current_idx: i,
-                        seen: { ...seen, [num]: i },
-                        answer: null,
-                        current_line: 6,
-                    });
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    sel: $("exampleSel"), numsIn: $("numsIn"), targetIn: $("targetIn"), load: $("loadBtn"), err: $("err"),
+    restart: $("restartBtn"), back: $("backBtn"), play: $("playBtn"), next: $("nextBtn"),
+    stepCount: $("stepCount"), speed: $("speed"), progress: $("progressBar"),
+    narration: $("narration"), targetShow: $("targetShow"), array: $("array"), vars: $("vars"),
+    mapBody: $("mapBody"), lookup: $("lookup"), result: $("result"), code: $("code")
+  };
 
-                    seen[num] = i;
-                }
+  let nums = [], target = 0, steps = [], cur = 0, timer = null;
 
-                frames.push({
-                    kind: "end",
-                    msg: "No match found.",
-                    current_idx: -1,
-                    seen: seen,
-                    answer: null,
-                    current_line: -1,
-                });
+  // Render code
+  els.code.innerHTML = CODE.map((l, i) => '<span class="ln" data-line="' + (i + 1) + '">' + l + '</span>').join("");
+  const codeLines = Array.from(els.code.querySelectorAll(".ln"));
 
-                return frames;
-            }
-        }
+  function buildSteps(nums, target) {
+    const s = [];
+    const seen = new Map();
+    const snap = () => Array.from(seen.entries());
+    const base = { i: null, num: null, comp: null, seen: [], lookup: null, newKey: null, match: null, result: null };
 
-        function build(nums, target) {
-            const solver = new TwoSumSolver(nums, target);
-            return solver.solve();
-        }
+    s.push(Object.assign({}, base, {
+      line: 3, seen: snap(),
+      msg: "Create an empty hash map <b>seen</b> that will map each value to its index."
+    }));
 
-        function show(frameIdx) {
-            if (frameIdx < 0 || frameIdx >= frames.length) return;
+    for (let i = 0; i < nums.length; i++) {
+      const num = nums[i];
+      s.push(Object.assign({}, base, {
+        line: 4, i, num, seen: snap(),
+        msg: "Loop: <b>i = " + i + "</b>, <b>num = " + num + "</b>."
+      }));
+      const comp = target - num;
+      s.push(Object.assign({}, base, {
+        line: 5, i, num, comp, seen: snap(),
+        msg: "complement = target − num = " + target + " − " + fmt(num) + " = <b>" + comp + "</b>. That's the partner we need."
+      }));
+      if (seen.has(comp)) {
+        const j = seen.get(comp);
+        s.push(Object.assign({}, base, {
+          line: 6, i, num, comp, seen: snap(), lookup: { key: comp, hit: true },
+          msg: "Is " + comp + " in seen? <b>Yes!</b> It was stored at index " + j + "."
+        }));
+        s.push(Object.assign({}, base, {
+          line: 7, i, num, comp, seen: snap(), lookup: { key: comp, hit: true }, match: [j, i], result: [j, i],
+          msg: "Return <b>[" + j + ", " + i + "]</b> because nums[" + j + "] + nums[" + i + "] = " + nums[j] + " + " + fmt(num) + " = " + target + ". ✅"
+        }));
+        return s;
+      }
+      s.push(Object.assign({}, base, {
+        line: 6, i, num, comp, seen: snap(), lookup: { key: comp, hit: false },
+        msg: "Is " + comp + " in seen? <b>No.</b> Its partner hasn't appeared yet."
+      }));
+      const overwrite = seen.has(num);
+      seen.set(num, i);
+      s.push(Object.assign({}, base, {
+        line: 8, i, num, comp, seen: snap(), newKey: num,
+        msg: (overwrite ? "Update" : "Store") + " <b>seen[" + num + "] = " + i + "</b> so a later number can find it."
+      }));
+    }
+    s.push(Object.assign({}, base, {
+      line: 9, seen: snap(), result: [],
+      msg: "No pair found — return <b>[]</b>. (LeetCode guarantees this never happens.)"
+    }));
+    return s;
+  }
 
-            const frame = frames[frameIdx];
-            currentFrameIndex = frameIdx;
+  function fmt(n) { return n < 0 ? "(" + n + ")" : String(n); }
 
-            // Update moves
-            document.querySelectorAll('.move-card').forEach(card => card.classList.remove('active'));
-            if (frame.kind === "scan" || frame.kind === "read") {
-                document.getElementById('move-0')?.classList.add('active');
-            } else if (frame.kind === "found") {
-                document.getElementById('move-1')?.classList.add('active');
-            } else if (frame.kind === "store") {
-                document.getElementById('move-2')?.classList.add('active');
-            }
+  function renderArray() {
+    els.array.innerHTML = nums.map((n, i) =>
+      '<div class="cell" role="listitem" data-i="' + i + '" aria-label="index ' + i + ', value ' + n + '">' +
+      '<span class="pointer" aria-hidden="true">i ↓</span>' +
+      '<div class="box">' + n + '</div><div class="idx">[' + i + ']</div></div>'
+    ).join("");
+  }
 
-            // Update array display
-            const arrayDisplay = document.getElementById('array-display');
-            arrayDisplay.innerHTML = '';
-            for (let i = 0; i < currentNums.length; i++) {
-                const tile = document.createElement('div');
-                tile.className = 'array-tile';
-                if (i === frame.current_idx) tile.classList.add('current');
-                if (frame.answer && frame.answer.includes(i)) tile.classList.add('found');
-                tile.textContent = currentNums[i];
-                arrayDisplay.appendChild(tile);
-            }
+  let prevVars = {};
+  function render() {
+    const st = steps[cur];
+    if (!st) return;
 
-            // Update hash map display
-            const mapDisplay = document.getElementById('hash-map-display');
-            let mapText = '{';
-            for (const [key, val] of Object.entries(frame.seen)) {
-                mapText += `${key}: ${val}, `;
-            }
-            if (mapText.length > 1) mapText = mapText.slice(0, -2);
-            mapText += '}';
-            mapDisplay.textContent = mapText;
+    // code highlight
+    codeLines.forEach((el, k) => el.classList.toggle("active", k + 1 === st.line));
 
-            // Update narration
-            const narration = document.getElementById('narration');
-            narration.textContent = frame.msg;
+    // array
+    const inMapIdx = new Set(st.seen.map(([, v]) => v));
+    els.array.querySelectorAll(".cell").forEach((c) => {
+      const i = +c.dataset.i;
+      c.classList.toggle("current", st.i === i && !st.match);
+      c.classList.toggle("visited", st.i !== null && i < st.i);
+      c.classList.toggle("inmap", inMapIdx.has(i));
+      c.classList.toggle("match", !!st.match && st.match.includes(i));
+    });
 
-            // Update code highlighting
-            const codeDisplay = document.getElementById('code-display');
-            const lines = PYTHON_CODE.split('\n');
-            codeDisplay.innerHTML = lines.map((line, idx) => {
-                const active = idx === frame.current_line ? 'active' : '';
-                return `<span class="code-line ${active}" data-line="${idx + 1}">${escapeHtml(line)}</span>`;
-            }).join('\n');
+    // variables
+    const vars = {
+      i: st.i === null ? "—" : st.i,
+      num: st.num === null ? "—" : st.num,
+      complement: st.comp === null ? "—" : st.comp,
+      "len(seen)": st.seen.length
+    };
+    els.vars.innerHTML = Object.keys(vars).map((k) => {
+      const changed = cur > 0 && prevVars[k] !== undefined && prevVars[k] !== vars[k] && vars[k] !== "—";
+      return '<div class="var' + (changed ? " changed" : "") + '"><div class="k mono">' + k + '</div><div class="v mono">' + vars[k] + '</div></div>';
+    }).join("");
+    prevVars = vars;
 
-            // Update frame counter
-            document.getElementById('frame-index').textContent = currentFrameIndex + 1;
-            document.getElementById('frame-total').textContent = frames.length;
+    // map
+    if (st.seen.length === 0) {
+      els.mapBody.innerHTML = '<tr><td colspan="2" class="empty">empty</td></tr>';
+    } else {
+      els.mapBody.innerHTML = st.seen.map(([k, v]) => {
+        let cls = "";
+        if (st.newKey === k) cls = "new";
+        if (st.lookup && st.lookup.hit && st.lookup.key === k) cls = "hit";
+        return '<tr class="' + cls + '"><td class="mono">' + k + '</td><td class="mono">' + v + '</td></tr>';
+      }).join("");
+    }
 
-            // Update scrubber
-            document.getElementById('scrubber').max = frames.length - 1;
-            document.getElementById('scrubber').value = currentFrameIndex;
-        }
+    // lookup text
+    if (st.lookup) {
+      els.lookup.innerHTML = 'Lookup <span class="mono">' + st.lookup.key + ' in seen</span> → ' +
+        (st.lookup.hit ? '<span class="hitt">found ✓</span>' : '<span class="miss">not found ✗</span>');
+    } else {
+      els.lookup.innerHTML = "";
+    }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+    // narration + result
+    els.narration.innerHTML = st.msg;
+    els.narration.classList.toggle("success", !!(st.result && st.result.length));
+    els.result.textContent = st.result ? "Output: [" + st.result.join(", ") + "]" : "";
 
-        function animate() {
-            if (!isPlaying || currentFrameIndex >= frames.length - 1) {
-                isPlaying = false;
-                document.getElementById('play-btn').textContent = '▶ Play';
-                return;
-            }
+    // controls
+    els.stepCount.textContent = "Step " + (cur + 1) + " / " + steps.length;
+    els.progress.style.width = (steps.length > 1 ? (cur / (steps.length - 1)) * 100 : 100) + "%";
+    els.back.disabled = cur === 0;
+    els.next.disabled = cur >= steps.length - 1;
+    els.targetShow.textContent = target;
+  }
 
-            currentFrameIndex++;
-            show(currentFrameIndex);
-            setTimeout(animate, 1000 / speed);
-        }
+  function setPlaying(on) {
+    if (on) {
+      if (cur >= steps.length - 1) { cur = 0; render(); }
+      els.play.textContent = "⏸ Pause";
+      els.play.setAttribute("aria-label", "Pause (Space)");
+      tick();
+    } else {
+      clearTimeout(timer);
+      timer = null;
+      els.play.textContent = "▶ Play";
+      els.play.setAttribute("aria-label", "Play (Space)");
+    }
+  }
+  function isPlaying() { return timer !== null; }
+  function tick() {
+    timer = setTimeout(() => {
+      if (cur < steps.length - 1) {
+        cur++; render();
+        if (cur < steps.length - 1) tick(); else setPlaying(false);
+      } else setPlaying(false);
+    }, +els.speed.value);
+  }
 
-        // Initialize with sample: [2, 7, 11, 15], target 9
-        currentNums = [2, 7, 11, 15];
-        frames = build(currentNums, 9);
-        show(0);
+  function next() { setPlaying(false); if (cur < steps.length - 1) { cur++; render(); } }
+  function back() { setPlaying(false); if (cur > 0) { cur--; render(); } }
+  function restart() { setPlaying(false); cur = 0; prevVars = {}; render(); }
 
-        // Event listeners
-        document.getElementById('play-btn').addEventListener('click', () => {
-            isPlaying = !isPlaying;
-            document.getElementById('play-btn').textContent = isPlaying ? '⏸ Pause' : '▶ Play';
-            if (isPlaying) animate();
-        });
+  function load(n, t) {
+    setPlaying(false);
+    nums = n; target = t;
+    steps = buildSteps(nums, target);
+    cur = 0; prevVars = {};
+    renderArray();
+    render();
+  }
 
-        document.getElementById('restart-btn').addEventListener('click', () => {
-            isPlaying = false;
-            currentFrameIndex = 0;
-            show(0);
-            document.getElementById('play-btn').textContent = '▶ Play';
-        });
+  function parseInput() {
+    const raw = els.numsIn.value.trim();
+    const parts = raw.split(/[\s,]+/).filter(Boolean);
+    const n = parts.map(Number);
+    const t = Number(els.targetIn.value);
+    if (parts.length < 2) return "nums needs at least 2 integers.";
+    if (parts.length > 20) return "Please use at most 20 numbers for the visualization.";
+    if (n.some((x) => !Number.isInteger(x))) return "nums must contain only integers.";
+    if (n.some((x) => Math.abs(x) > 1e9)) return "Each value must be between -10^9 and 10^9.";
+    if (els.targetIn.value.trim() === "" || !Number.isInteger(t)) return "target must be an integer.";
+    if (Math.abs(t) > 1e9) return "target must be between -10^9 and 10^9.";
+    return { n, t };
+  }
 
-        document.getElementById('next-btn').addEventListener('click', () => {
-            isPlaying = false;
-            document.getElementById('play-btn').textContent = '▶ Play';
-            if (currentFrameIndex < frames.length - 1) {
-                currentFrameIndex++;
-                show(currentFrameIndex);
-            }
-        });
+  function onLoad() {
+    const r = parseInput();
+    if (typeof r === "string") { els.err.textContent = r; return; }
+    els.err.textContent = "";
+    load(r.n, r.t);
+  }
 
-        document.getElementById('prev-btn').addEventListener('click', () => {
-            isPlaying = false;
-            document.getElementById('play-btn').textContent = '▶ Play';
-            if (currentFrameIndex > 0) {
-                currentFrameIndex--;
-                show(currentFrameIndex);
-            }
-        });
+  els.sel.addEventListener("change", () => {
+    const v = els.sel.value;
+    if (v === "custom") { els.numsIn.focus(); return; }
+    const ex = EXAMPLES[+v];
+    els.numsIn.value = ex.nums.join(",");
+    els.targetIn.value = ex.target;
+    els.err.textContent = "";
+    load(ex.nums.slice(), ex.target);
+  });
+  els.load.addEventListener("click", () => { els.sel.value = "custom"; onLoad(); });
+  [els.numsIn, els.targetIn].forEach((el) => el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); els.sel.value = "custom"; onLoad(); }
+  }));
 
-        document.getElementById('scrubber').addEventListener('input', (e) => {
-            isPlaying = false;
-            document.getElementById('play-btn').textContent = '▶ Play';
-            show(parseInt(e.target.value));
-        });
+  els.play.addEventListener("click", () => setPlaying(!isPlaying()));
+  els.next.addEventListener("click", next);
+  els.back.addEventListener("click", back);
+  els.restart.addEventListener("click", restart);
 
-        document.querySelectorAll('.speed-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                speed = parseFloat(e.target.dataset.speed);
-            });
-        });
+  document.addEventListener("keydown", (e) => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "select" || tag === "textarea") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === " " || e.code === "Space") {
+      e.preventDefault(); setPlaying(!isPlaying());
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault(); next();
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault(); back();
+    } else if (e.key === "r" || e.key === "R") {
+      e.preventDefault(); restart();
+    }
+  });
 
-        document.getElementById('run-custom-btn').addEventListener('click', () => {
-            const inputStr = document.getElementById('custom-input').value;
-            const target = parseInt(document.getElementById('custom-target').value);
-
-            const nums = inputStr.split(',').map(s => {
-                const n = parseInt(s.trim());
-                return isNaN(n) ? 0 : n;
-            });
-
-            currentNums = nums;
-            frames = build(nums, target);
-            currentFrameIndex = 0;
-            isPlaying = false;
-            document.getElementById('play-btn').textContent = '▶ Play';
-            show(0);
-
-            const resultDiv = document.getElementById('custom-result');
-            if (frames.length > 0) {
-                const lastFrame = frames[frames.length - 1];
-                if (lastFrame.answer) {
-                    resultDiv.textContent = `Answer: indices [${lastFrame.answer.join(', ')}] → values [${lastFrame.answer.map(i => nums[i]).join(', ')}] = ${target}`;
-                } else {
-                    resultDiv.textContent = 'No match found.';
-                }
-            }
-        });
-
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === ' ') {
-                e.preventDefault();
-                document.getElementById('play-btn').click();
-            } else if (e.key === 'ArrowRight') {
-                document.getElementById('next-btn').click();
-            } else if (e.key === 'ArrowLeft') {
-                document.getElementById('prev-btn').click();
-            } else if (e.key === 'r' || e.key === 'R') {
-                document.getElementById('restart-btn').click();
-            }
-        });
-
-        // Initial assertions (console checks)
-        console.assert(build([2, 7, 11, 15], 9).some(f => f.answer && f.answer[0] === 0 && f.answer[1] === 1), "Test 1 failed");
-        console.assert(build([3, 2, 4], 6).some(f => f.answer && f.answer[0] === 1 && f.answer[1] === 2), "Test 2 failed");
-        console.assert(build([3, 3], 6).some(f => f.answer && f.answer[0] === 0 && f.answer[1] === 1), "Test 3 failed");
-    </script>
+  load(EXAMPLES[0].nums.slice(), EXAMPLES[0].target);
+})();
+</script>
 </body>
 </html>

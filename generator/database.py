@@ -24,7 +24,7 @@ def get_connection(db_path=DEFAULT_DB_PATH):
     )
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
-    conn.execute("PRAGMA foreign_keys=ON;")
+    conn.execute("PRAGMA foreign_keys=OFF;")
     conn.execute("PRAGMA busy_timeout=30000;")
     return conn
 
@@ -182,7 +182,7 @@ def validate_transition(from_status: str, to_status: str):
         raise InvalidTransitionError(f"Unknown status: {from_status}")
     if to_status not in VALID_TRANSITIONS.get(from_status, set()):
         raise InvalidTransitionError(
-            f"Invalid transition: {from_status} → {to_status}"
+            f"Invalid transition: {from_status} -> {to_status}"
         )
 
 

@@ -11,6 +11,10 @@ from .utils import problem_filename_stem, normalize_slug
 
 def normalize_problem(raw: dict) -> dict:
     """Normalize raw LeetCode API response to our schema."""
+    # If already normalized (from new vercel API), return as-is
+    if "leetcode_id" in raw and isinstance(raw.get("leetcode_id"), int):
+        return raw
+
     frontend_id = raw.get("questionFrontendId", raw.get("questionId", 0))
     slug = normalize_slug(raw.get("titleSlug", ""))
 
@@ -37,10 +41,10 @@ def normalize_problem(raw: dict) -> dict:
                 break
 
     return {
-        "leetcode_id": frontend_id,
+        "leetcode_id": int(frontend_id) if frontend_id else 0,
         "title": raw.get("title", ""),
         "slug": slug,
-        "difficulty": raw.get("difficulty", "").capitalize(),
+        "difficulty": raw.get("difficulty", "").capitalize() if raw.get("difficulty") else "Medium",
         "url": f"https://leetcode.com/problems/{slug}/",
         "topics": topics,
         "description_summary": "",

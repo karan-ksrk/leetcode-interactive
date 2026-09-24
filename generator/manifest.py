@@ -20,22 +20,22 @@ def rebuild_problems_json(
 
     problems_list = []
     for row in cursor.fetchall():
-        problem_data = {
-            "id": row["leetcode_id"],
-            "title": row["title"],
-            "slug": row["slug"],
-            "difficulty": row["difficulty"],
-            "topics": json.loads(row["topics_json"]) if row["topics_json"] else [],
-            "file": row["html_file"],
-            "url": row["url"],
-        }
-
         # Verify file actually exists on disk
         if row["html_file"]:
             file_path = problems_dir / row["html_file"]
             if not file_path.exists():
                 print(f"WARNING: Published problem {row['leetcode_id']} file missing: {file_path}")
                 continue
+
+        problem_data = {
+            "id": row["leetcode_id"],
+            "title": row["title"],
+            "slug": row["slug"],
+            "difficulty": row["difficulty"],
+            "topics": json.loads(row["topics_json"]) if row["topics_json"] else [],
+            "file": f"problems/{row['html_file']}" if row["html_file"] else None,
+            "url": row["url"],
+        }
 
         problems_list.append(problem_data)
 

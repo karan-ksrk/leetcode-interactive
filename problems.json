@@ -1,29 +1,47 @@
 [
   {
+    "id": 1,
+    "title": "Two Sum",
+    "slug": "two-sum",
+    "difficulty": "Easy",
+    "topics": [
+      "Array",
+      "Hash Table"
+    ],
+    "file": "problems/1-two-sum.html",
+    "url": "https://leetcode.com/problems/two-sum/"
+  },
+  {
     "id": 4,
     "title": "Median of Two Sorted Arrays",
     "slug": "median-of-two-sorted-arrays",
     "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/",
+    "topics": [],
     "file": "problems/4-median-of-two-sorted-arrays.html",
-    "topics": []
+    "url": "https://leetcode.com/problems/median-of-two-sorted-arrays/"
   },
   {
     "id": 9,
     "title": "Palindrome Number",
     "slug": "palindrome-number",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/palindrome-number/",
+    "difficulty": "Easy",
+    "topics": [
+      "Math"
+    ],
     "file": "problems/9-palindrome-number.html",
-    "topics": []
+    "url": "https://leetcode.com/problems/palindrome-number/"
   },
   {
     "id": 20,
     "title": "Valid Parentheses",
     "slug": "valid-parentheses",
-    "difficulty": "Medium",
-    "url": "https://leetcode.com/problems/valid-parentheses/",
+    "difficulty": "Easy",
+    "topics": [
+      "String",
+      "Stack",
+      "Bracket Sequences"
+    ],
     "file": "problems/20-valid-parentheses.html",
-    "topics": []
+    "url": "https://leetcode.com/problems/valid-parentheses/"
   }
 ]

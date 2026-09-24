@@ -220,7 +220,7 @@ class InvalidTransitionError(Exception):
 
 
 VALID_TRANSITIONS = {
-    "pending": {"fetching"},
+    "pending": {"fetching", "fetched"},
     "fetching": {"fetched", "failed"},
     "fetched": {"generating"},
     "generating": {"validating", "failed"},
